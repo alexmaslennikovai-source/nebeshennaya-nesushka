@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>НеБешенная НеСушка — Telegram Mini App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        body {
+            background: radial-gradient(circle at top, #1e1b4b 0%, #0f172a 45%, #020617 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.72);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.09);
+        }
+        .finale-day-glow {
+            box-shadow: 0 0 12px rgba(245, 158, 11, 0.35);
+            border-color: rgba(245, 158, 11, 0.7) !important;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(148, 163, 184, 0.3);
+            border-radius: 9999px;
+        }
+    </style>
+</head>
+<body class="pb-24 select-none">
+
+    <!-- ЭКРАН БЛОКИРОВКИ ВАЙТЛИСТА (ДЛЯ ПОСТОРОННИХ ПОЛЬЗОВАТЕЛЕЙ) -->
+    <div id="whitelistLockModal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 hidden">
+        <div class="glass-card rounded-3xl p-6 max-w-sm w-full border border-rose-500/40 shadow-2xl text-center space-y-4">
+            <div class="w-16 h-16 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-400 text-3xl">
+                <i class="fa-solid fa-user-lock"></i>
+            </div>
+            <div class="space-y-1.5">
+                <span class="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
+                    Приватный доступ
+                </span>
+                <h2 class="text-xl font-black text-white">Доступ закрыт</h2>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Челлендж <b>«НеБешенная НеСушка»</b> доступен только для участников, чьи Telegram ID добавлены в вайтлист в коде бота.
+                </p>
+            </div>
+            <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-3 text-xs space-y-1">
+                <div class="text-slate-400 text-[11px]">Ваш Telegram ID:</div>
+                <div id="blockedUserIdDisplay" class="font-mono font-bold text-amber-300 text-sm select-all">Неизвестен</div>
+                <div class="text-[10px] text-slate-500 pt-1">Добавьте этот ID в массив <code>ALLOWED_USER_IDS</code> в <code>bot.py</code> и <code>index.html</code></div>
+            </div>
+            <button id="closeWhitelistDemoBtn" onclick="closeWhitelistDemo()" class="hidden w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition">
+                Вернуться из предпросмотра блокировки
+            </button>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО МОТИВАЦИИ ПОСЛЕ ТРЕНИРОВКИ -->
+    <div id="motivationModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="glass-card rounded-3xl p-6 max-w-sm w-full border border-indigo-500/40 shadow-2xl text-center space-y-4 relative overflow-hidden">
+            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/30 text-3xl">
+                <span id="motivationEmoji">🔥</span>
+            </div>
+
+            <div class="space-y-1">
+                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-black">
+                    <i class="fa-solid fa-bolt"></i> +1 балл в копилку 128!
+                </div>
+                <h3 id="motivationTitle" class="text-lg font-black text-white pt-1">Тренировка засчитана!</h3>
+                <p id="motivationWorkoutSummary" class="text-xs font-semibold text-indigo-300"></p>
+            </div>
+
+            <div class="rounded-2xl bg-slate-900/90 border border-indigo-500/30 p-4 text-left space-y-1.5">
+                <div class="text-[10px] font-extrabold uppercase tracking-wider text-pink-400 flex items-center gap-1.5">
+                    <i class="fa-solid fa-quote-left"></i> Заряд мотивации «НеБешенная НеСушка»
+                </div>
+                <p id="motivationQuoteText" class="text-xs text-slate-100 font-medium leading-relaxed italic"></p>
+            </div>
+
+            <div id="motivationProgressText" class="text-[11px] text-slate-400 font-medium"></div>
+
+            <button type="button" onclick="closeMotivationModal()"
+                class="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 text-xs font-bold text-white shadow-lg shadow-indigo-500/25 transition active:scale-[0.99]">
+                💪 Супер, идём к победе!
+            </button>
+        </div>
+    </div>
+
+    <!-- УВЕДОМЛЕНИЯ (TOAST) -->
+    <div id="toastBox" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300 max-w-sm w-[92%]">
+        <div class="glass-card rounded-2xl px-4 py-3 shadow-2xl border border-emerald-500/40 flex items-center gap-3">
+            <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
+            <p id="toastText" class="text-xs font-semibold text-slate-100 leading-snug"></p>
+        </div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО РЕГИСТРАЦИИ (СТАРТ 2 НОЯБРЯ) -->
+    <div id="onboardingModal" class="fixed inset-0 z-40 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 hidden overflow-y-auto">
+        <div class="glass-card rounded-3xl p-6 max-w-md w-full border border-indigo-500/30 shadow-2xl space-y-5 my-auto">
+            <div class="text-center space-y-2">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/15 border border-pink-500/30 text-pink-300 text-xs font-bold">
+                    <i class="fa-solid fa-fire-flame-curved"></i> 2 Ноября — 29 Декабря
+                </div>
+                <h1 class="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-pink-300 bg-clip-text text-transparent">
+                    НеБешенная НеСушка
+                </h1>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                    Цель соревнования с другом — набрать значение как можно ближе к <span class="text-amber-300 font-bold">128 баллам</span>:
+                    <span class="text-indigo-300 font-semibold">+1 балл</span> за каждую тренировку (план 28) и максимум <span class="text-pink-300 font-semibold">100 баллов</span> за % выполнения цели по весу (перевыполнение свыше 100 баллов не учитывается).
+                </p>
+            </div>
+
+            <!-- Предупреждение о приватности веса -->
+            <div class="rounded-2xl bg-emerald-950/40 border border-emerald-500/30 p-3.5 flex gap-3 items-start">
+                <i class="fa-solid fa-shield-halved text-emerald-400 text-base mt-0.5"></i>
+                <div class="text-[11px] text-emerald-100/90 leading-relaxed">
+                    <span class="font-bold text-emerald-300">Гарантия приватности:</span> данные о вашем стартовом, текущем и желаемом весе <b>не распространяются</b> и скрыты от друга. До 29 декабря вы видите только баллы за тренировки и даты посещений друг друга. В финале раскроется лишь итоговая % дельта (но не более 100 баллов)!
+                </div>
+            </div>
+
+            <form id="registrationForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Ваше имя в челлендже</label>
+                    <input id="regName" type="text" required placeholder="Например, Алекс"
+                        class="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Выберите аватарку</label>
+                    <div id="regAvatarGrid" class="grid grid-cols-5 gap-2"></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-300 mb-1">
+                            Вес на 2 ноября (кг) <i class="fa-solid fa-lock text-emerald-400 ml-0.5"></i>
+                        </label>
+                        <input id="regStartWeight" type="number" step="0.1" min="35" max="250" required placeholder="68.5"
+                            class="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-300 mb-1">
+                            Желаемый вес финала <i class="fa-solid fa-lock text-emerald-400 ml-0.5"></i>
+                        </label>
+                        <input id="regTargetWeight" type="number" step="0.1" min="35" max="250" required placeholder="62.0"
+                            class="w-full bg-slate-900/90 border border-slate-700 focus:border-pink-500 rounded-xl px-3 py-2.5 text-sm text-white outline-none">
+                    </div>
+                </div>
+
+                <p id="regError" class="text-xs text-rose-400 font-semibold hidden"></p>
+
+                <button type="submit"
+                    class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 font-bold text-sm text-white shadow-lg shadow-indigo-500/25 transition active:scale-[0.99]">
+                    🚀 Вступить в «НеБешенную НеСушку»
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ВЕРХНЯЯ ШАПКА -->
+    <header class="max-w-md mx-auto px-4 pt-4 pb-2 space-y-3">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <i class="fa-solid fa-fire text-white text-lg"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-1.5">
+                        <h1 class="text-base font-black tracking-tight text-white">НеБешенная НеСушка</h1>
+                        <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">128 pts</span>
+                    </div>
+                    <p class="text-[11px] text-slate-400">2 ноября — 29 декабря • Дуэль с другом</p>
+                </div>
+            </div>
+
+            <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl glass-card flex items-center justify-center text-slate-300 hover:text-white transition" title="Профиль и переключение участника">
+                <i class="fa-solid fa-sliders text-sm"></i>
+            </button>
+        </div>
+
+        <!-- КАРТОЧКА ДУЭЛИ (ВЫ ПРОТИВ ДРУГА) -->
+        <div class="glass-card rounded-3xl p-4 shadow-xl border border-indigo-500/20 space-y-3">
+            <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium">
+                <span>🎯 Цель: <strong class="text-amber-300">128 баллов</strong> (28 трен. + макс. 100% вес)</span>
+                <span id="duelPrivacyBadge" class="text-emerald-400 font-semibold flex items-center gap-1">
+                    <i class="fa-solid fa-eye-slash"></i> Вес скрыт до 29.12
+                </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <!-- Игрок 1 (Вы) -->
+                <div class="bg-slate-900/75 rounded-2xl p-3 border border-indigo-500/40 relative overflow-hidden">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span id="meAvatar" class="text-xl">🔥</span>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1">
+                                <span id="meName" class="text-xs font-bold text-white truncate">Вы</span>
+                                <span class="text-[9px] px-1.5 py-0.2 bg-indigo-500/30 text-indigo-200 rounded font-bold">ВЫ</span>
+                            </div>
+                            <p id="meWorkoutsSub" class="text-[10px] text-slate-400">0 / 28 тренировок</p>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline justify-between">
+                        <div>
+                            <span id="meVisibleScore" class="text-2xl font-black text-indigo-300">0</span>
+                            <span class="text-[10px] text-slate-400 font-semibold">балл(ов)</span>
+                        </div>
+                        <span id="meWeightLockTag" class="text-[10px] text-emerald-400 bg-emerald-950/60 border border-emerald-500/30 px-2 py-0.5 rounded-lg">
+                            🔒 +вес 29.12
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Игрок 2 (Друг) -->
+                <div class="bg-slate-900/75 rounded-2xl p-3 border border-pink-500/30 relative overflow-hidden">
+                    <div class="flex items-center gap-2 mb-2">
+                        <span id="friendAvatar" class="text-xl">⚡</span>
+                        <div class="min-w-0">
+                            <div class="flex items-center gap-1">
+                                <span id="friendName" class="text-xs font-bold text-white truncate">Друг</span>
+                                <span class="text-[9px] px-1.5 py-0.2 bg-pink-500/30 text-pink-200 rounded font-bold">ДРУГ</span>
+                            </div>
+                            <p id="friendWorkoutsSub" class="text-[10px] text-slate-400">0 / 28 тренировок</p>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline justify-between">
+                        <div>
+                            <span id="friendVisibleScore" class="text-2xl font-black text-pink-300">0</span>
+                            <span class="text-[10px] text-slate-400 font-semibold">балл(ов)</span>
+                        </div>
+                        <span id="friendWeightLockTag" class="text-[10px] text-slate-400 bg-slate-800/80 border border-slate-700 px-2 py-0.5 rounded-lg">
+                            🔒 скрыто
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Статус обязательного минимума текущей недели -->
+            <div id="weeklyMinimumBanner" class="rounded-2xl px-3.5 py-2.5 text-xs flex items-center justify-between border">
+                <div class="flex items-center gap-2">
+                    <i id="weeklyMinimumIcon" class="fa-solid fa-bell"></i>
+                    <span id="weeklyMinimumText" class="font-semibold">Проверка обязательного минимума...</span>
+                </div>
+                <span id="weeklyMinimumCount" class="font-bold text-[11px] px-2 py-0.5 rounded-lg"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- ОСНОВНОЙ КОНТЕНТ -->
+    <main class="max-w-md mx-auto px-4 pt-2 space-y-4">
+
+        <!-- ВКЛАДКА 1: КАЛЕНДАРЬ И ОТМЕТКА ТРЕНИРОВОК / ВЕСА -->
+        <section id="tab-calendar" class="tab-panel space-y-4">
+            <div class="glass-card rounded-3xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div class="flex gap-1.5">
+                        <button id="btnMonthNov" onclick="switchCalendarMonth(10)"
+                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition bg-indigo-600 text-white">
+                            Ноябрь (со 2.11)
+                        </button>
+                        <button id="btnMonthDec" onclick="switchCalendarMonth(11)"
+                            class="px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-800 text-slate-300 hover:text-white">
+                            Декабрь (до 29.12)
+                        </button>
+                    </div>
+                    <div class="flex items-center gap-2 text-[10px] text-slate-300">
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-indigo-400"></span>Вы</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-pink-400"></span>Друг</span>
+                    </div>
+                </div>
+
+                <!-- Дни недели -->
+                <div class="grid grid-cols-7 text-center text-[10px] font-bold text-slate-400 uppercase tracking-wider pt-1">
+                    <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
+                </div>
+
+                <!-- Сетка дней -->
+                <div id="calendarGrid" class="grid grid-cols-7 gap-1.5"></div>
+
+                <div class="flex items-center justify-between pt-1 text-[10px] text-slate-400 border-t border-slate-800/80">
+                    <span>⭐ <b class="text-amber-300">27–29 декабря</b> — финальное окно замера минимального веса</span>
+                </div>
+            </div>
+
+            <!-- РЕДАКТОР ВЫБРАННОГО ДНЯ -->
+            <div class="glass-card rounded-3xl p-4 space-y-4 border border-indigo-500/30">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <span class="text-[10px] uppercase tracking-wider text-indigo-300 font-bold">Выбранная дата</span>
+                        <h3 id="selectedDateTitle" class="text-base font-extrabold text-white">2 ноября</h3>
+                    </div>
+                    <div id="selectedDayBadges" class="flex items-center gap-1.5"></div>
+                </div>
+
+                <!-- Информация о тренировке друга в этот день (только факт посещения, без веса!) -->
+                <div id="friendDayActivityBox" class="hidden rounded-2xl bg-pink-950/30 border border-pink-500/30 px-3.5 py-2.5 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2">
+                        <span id="friendDayEmoji" class="text-base">⚡</span>
+                        <div>
+                            <p class="font-bold text-pink-200">Друг потренировался в этот день!</p>
+                            <p id="friendDayDetails" class="text-[11px] text-pink-300/80"></p>
+                        </div>
+                    </div>
+                    <span class="text-xs font-black text-pink-300 bg-pink-500/20 px-2.5 py-1 rounded-xl">+1 балл</span>
+                </div>
+
+                <!-- Форма отметки своей тренировки -->
+                <div class="space-y-3">
+                    <label class="block text-xs font-bold text-slate-200">
+                        1. Выберите вид тренировки (+1 балл к 128):
+                    </label>
+                    <div id="workoutTypeButtons" class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="selectWorkoutType('home')" data-type="home"
+                            class="workout-type-btn flex items-center gap-2.5 p-2.5 rounded-2xl border border-slate-700 bg-slate-900/70 text-left transition">
+                            <span class="text-lg">🏠</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">Дома</div>
+                                <div class="text-[10px] text-slate-400">Коврик / онлайн</div>
+                            </div>
+                        </button>
+                        <button type="button" onclick="selectWorkoutType('gym')" data-type="gym"
+                            class="workout-type-btn flex items-center gap-2.5 p-2.5 rounded-2xl border border-slate-700 bg-slate-900/70 text-left transition">
+                            <span class="text-lg">🏋️‍♀️</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">Тренажерка</div>
+                                <div class="text-[10px] text-slate-400">Силовая / кардио</div>
+                            </div>
+                        </button>
+                        <button type="button" onclick="selectWorkoutType('dance')" data-type="dance"
+                            class="workout-type-btn flex items-center gap-2.5 p-2.5 rounded-2xl border border-slate-700 bg-slate-900/70 text-left transition">
+                            <span class="text-lg">💃</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">Танцы</div>
+                                <div class="text-[10px] text-slate-400">Хорео / зумба</div>
+                            </div>
+                        </button>
+                        <button type="button" onclick="selectWorkoutType('other')" data-type="other"
+                            class="workout-type-btn flex items-center gap-2.5 p-2.5 rounded-2xl border border-slate-700 bg-slate-900/70 text-left transition">
+                            <span class="text-lg">⚡</span>
+                            <div>
+                                <div class="text-xs font-bold text-white">Другое</div>
+                                <div class="text-[10px] text-slate-400">Бассейн / бег / йога</div>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Продолжительность тренировки -->
+                    <div class="pt-1">
+                        <div class="flex items-center justify-between text-xs mb-1.5">
+                            <span class="font-bold text-slate-200">2. Продолжительность тренировки:</span>
+                            <span id="durationValueLabel" class="font-black text-indigo-300">45 мин</span>
+                        </div>
+                        <input id="workoutDurationInput" type="range" min="15" max="180" step="5" value="45"
+                            oninput="updateDurationLabel(this.value)"
+                            class="w-full accent-indigo-500 cursor-pointer">
+                        <div class="flex justify-between text-[10px] text-slate-400 mt-1">
+                            <button type="button" onclick="setQuickDuration(30)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700">30 мин</button>
+                            <button type="button" onclick="setQuickDuration(45)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700">45 мин</button>
+                            <button type="button" onclick="setQuickDuration(60)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700">60 мин</button>
+                            <button type="button" onclick="setQuickDuration(90)" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700">90 мин</button>
+                        </div>
+                    </div>
+
+                    <div class="flex gap-2 pt-1">
+                        <button type="button" onclick="saveWorkoutForSelectedDay()"
+                            class="flex-1 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:opacity-95 text-xs font-bold text-white shadow-lg shadow-indigo-500/20 transition">
+                            <i class="fa-solid fa-check mr-1"></i> Сохранить тренировку (+1 балл)
+                        </button>
+                        <button id="btnDeleteWorkout" type="button" onclick="removeWorkoutForSelectedDay()"
+                            class="hidden px-3.5 py-3 rounded-2xl bg-rose-950/60 border border-rose-500/40 text-rose-300 text-xs font-bold hover:bg-rose-900/50 transition" title="Удалить отметку">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Приватный замер веса за выбранный день -->
+                <div class="pt-3 border-t border-slate-800/90 space-y-2.5">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-lock text-emerald-400 text-xs"></i>
+                            <span class="text-xs font-bold text-slate-200">Личный дневник веса (скрыто от друга)</span>
+                        </div>
+                        <span id="finaleWindowHint" class="hidden text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/40">
+                            ⭐ Зачёт 27–29 дек
+                        </span>
+                    </div>
+
+                    <div class="flex gap-2">
+                        <input id="dayWeightInput" type="number" step="0.1" min="35" max="250" placeholder="Ваш вес в этот день (кг)"
+                            class="flex-1 bg-slate-900/90 border border-slate-700 focus:border-emerald-500 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                        <button type="button" onclick="saveWeightForSelectedDay()"
+                            class="px-4 py-2 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 text-xs font-bold text-white transition">
+                            Записать 🔒
+                        </button>
+                    </div>
+                    <p id="myPrivateProgressHint" class="text-[11px] text-slate-400 leading-relaxed"></p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ВКЛАДКА 2: КОНТРОЛЬ 8 НЕДЕЛЬ (ОБЯЗАТЕЛЬНЫЙ МИНИМУМ 1 ТРЕНИРОВКА В НЕДЕЛЮ) -->
+        <section id="tab-weeks" class="tab-panel hidden space-y-4">
+            <div class="glass-card rounded-3xl p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-sm font-extrabold text-white">Обязательный минимум: 8 недель</h2>
+                        <p class="text-[11px] text-slate-400">Правило «НеБешенной НеСушки»: минимум 1 тренировка каждые 7 дней</p>
+                    </div>
+                    <span id="weeksCompletedBadge" class="text-xs font-black px-2.5 py-1 rounded-xl bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                        0 / 8 нед.
+                    </span>
+                </div>
+
+                <div id="weeksListContainer" class="space-y-2.5"></div>
+            </div>
+        </section>
+
+        <!-- ВКЛАДКА 3: ФИНАЛЬНОЕ SUMMARY И СТАТИСТИКА -->
+        <section id="tab-summary" class="tab-panel hidden space-y-4">
+            <!-- Таймер обратного отсчёта до открытия Финала (29 декабря) -->
+            <div class="glass-card rounded-2xl p-4 border border-amber-500/30 bg-amber-950/20 space-y-3">
+                <div class="flex items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                        <i id="finaleLockIcon" class="fa-solid fa-lock text-amber-400 text-lg"></i>
+                        <div>
+                            <h4 class="text-xs font-bold text-amber-200">Режим Финала (29 Декабря)</h4>
+                            <p id="finaleTimerSubtitle" class="text-[11px] text-amber-300/80">Раскрытие % дельты веса откроется строго по таймеру 29 декабря</p>
+                        </div>
+                    </div>
+                    <span id="finaleStatusBadge" class="text-[10px] font-bold uppercase px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
+                        🔒 По таймеру
+                    </span>
+                </div>
+
+                <!-- Табло обратного отсчёта -->
+                <div id="finaleCountdownBox" class="grid grid-cols-4 gap-2 pt-1">
+                    <div class="bg-slate-900/90 border border-amber-500/20 rounded-xl p-2 text-center">
+                        <div id="cdDays" class="text-base font-black text-white">00</div>
+                        <div class="text-[9px] uppercase tracking-wider text-slate-400">Дней</div>
+                    </div>
+                    <div class="bg-slate-900/90 border border-amber-500/20 rounded-xl p-2 text-center">
+                        <div id="cdHours" class="text-base font-black text-white">00</div>
+                        <div class="text-[9px] uppercase tracking-wider text-slate-400">Часов</div>
+                    </div>
+                    <div class="bg-slate-900/90 border border-amber-500/20 rounded-xl p-2 text-center">
+                        <div id="cdMinutes" class="text-base font-black text-white">00</div>
+                        <div class="text-[9px] uppercase tracking-wider text-slate-400">Минут</div>
+                    </div>
+                    <div class="bg-slate-900/90 border border-amber-500/20 rounded-xl p-2 text-center">
+                        <div id="cdSeconds" class="text-base font-black text-amber-400">00</div>
+                        <div class="text-[9px] uppercase tracking-wider text-slate-400">Секунд</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Красивая карточка Summary -->
+            <div id="summaryCardContent" class="glass-card rounded-3xl p-5 shadow-2xl border border-pink-500/30 relative overflow-hidden space-y-5">
+                <div class="text-center space-y-1">
+                    <span class="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
+                        2 Ноября — 29 Декабря
+                    </span>
+                    <h2 class="text-xl font-black text-white pt-1">Итоги «НеБешенной НеСушки»</h2>
+                    <p id="summaryWinnerText" class="text-xs text-slate-300 font-medium"></p>
+                </div>
+
+                <!-- Сравнение близости к 128 баллам -->
+                <div id="summaryPlayersComparison" class="grid grid-cols-2 gap-3"></div>
+
+                <!-- Детальная статистика ваших тренировок -->
+                <div class="bg-slate-900/80 rounded-2xl p-4 border border-slate-800 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-extrabold uppercase tracking-wider text-indigo-300">
+                            📊 Ваша статистика тренировок
+                        </h3>
+                        <span id="summaryTotalDuration" class="text-xs font-black text-white">0 мин</span>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 text-center">
+                        <div class="bg-slate-950/70 rounded-xl p-2.5 border border-slate-800/80">
+                            <div id="statTotalWorkouts" class="text-base font-black text-indigo-300">0 / 28</div>
+                            <div class="text-[10px] text-slate-400">Тренировок</div>
+                        </div>
+                        <div class="bg-slate-950/70 rounded-xl p-2.5 border border-slate-800/80">
+                            <div id="statTotalHours" class="text-base font-black text-pink-300">0 ч</div>
+                            <div class="text-[10px] text-slate-400">Всего часов</div>
+                        </div>
+                        <div class="bg-slate-950/70 rounded-xl p-2.5 border border-slate-800/80">
+                            <div id="statAvgMinutes" class="text-base font-black text-emerald-300">0 мин</div>
+                            <div class="text-[10px] text-slate-400">Средняя длит.</div>
+                        </div>
+                    </div>
+
+                    <!-- Распределение по видам тренировок -->
+                    <div id="statTypesBreakdown" class="space-y-2 pt-1"></div>
+                </div>
+
+                <!-- Блок правила расчёта веса (макс 100 баллов) -->
+                <div class="rounded-2xl bg-slate-900/70 border border-slate-800 p-3.5 text-[11px] text-slate-300 space-y-1">
+                    <div class="font-bold text-amber-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-scale-balanced"></i> Правило 128 баллов («НеБешенная НеСушка»):
+                    </div>
+                    <p class="text-slate-400 leading-relaxed">
+                        • За каждую тренировку начисляется <b>+1 балл</b> (план — 28 тренировок).<br>
+                        • За достижение цели по весу (по минимальному весу в период <b>27–29 декабря</b>) начисляется от 0 до <b>100 баллов</b>. Перевыполнение свыше 100% не даёт больше 100 баллов.<br>
+                        • Побеждает тот, чей итоговый результат окажется ближе всего к <b>128 баллам</b>!
+                    </p>
+                </div>
+
+                <button type="button" onclick="copySummaryText()"
+                    class="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-xs font-bold text-white shadow-lg transition active:scale-[0.99]">
+                    <i class="fa-solid fa-share-nodes mr-1.5"></i> Скопировать красивое Summary для чата
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- МОДАЛЬНОЕ ОКНО НАСТРОЕК И ПЕРЕКЛЮЧЕНИЯ ИГРОКА -->
+    <div id="settingsModal" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
+        <div class="glass-card rounded-3xl p-5 max-w-md w-full border border-slate-700 space-y-4">
+            <div class="flex items-center justify-between">
+                <h3 class="text-base font-extrabold text-white">Ваш личный профиль</h3>
+                <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-300 hover:text-white">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div class="rounded-2xl bg-emerald-950/40 border border-emerald-500/30 p-3 flex items-start gap-2.5">
+                <i class="fa-solid fa-user-shield text-emerald-400 text-sm mt-0.5"></i>
+                <p class="text-[11px] text-emerald-100/90 leading-relaxed">
+                    Здесь отображаются <b>только ваши личные настройки</b>. Данные о весе вашего друга зашифрованы и недоступны для просмотра.
+                </p>
+            </div>
+
+            <!-- Блок демо-переключения (виден ТОЛЬКО вне Telegram при тестировании в браузере, без показа чужого веса) -->
+            <div id="demoPreviewSwitcherBox" class="space-y-1.5 bg-slate-900/90 border border-amber-500/30 rounded-2xl p-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-300">
+                        🧪 Тестовый режим (только в Preview)
+                    </span>
+                    <span class="text-[10px] text-slate-400">В Telegram скрыто</span>
+                </div>
+                <p class="text-[11px] text-slate-400 leading-snug">
+                    В реальном Telegram профиль жёстко привязан к вашему <code>Telegram ID</code>. В предпросмотре вы можете добавить тестовую тренировку за друга, не видя его вес:
+                </p>
+                <button type="button" onclick="simulateFriendWorkoutToday()"
+                    class="w-full mt-1 py-2 rounded-xl bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/40 text-pink-200 text-xs font-bold transition">
+                    ⚡ Симулировать тренировку друга на выбранный день
+                </button>
+            </div>
+
+            <div class="space-y-3 pt-2 border-t border-slate-800">
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1">Ваше имя</label>
+                    <input id="settingsNameInput" type="text"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Аватарка</label>
+                    <div id="settingsAvatarGrid" class="grid grid-cols-5 gap-2"></div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">Ваш вес 2 ноября (кг) 🔒</label>
+                        <input id="settingsStartWeight" type="number" step="0.1"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-400 mb-1">Ваша цель финала (кг) 🔒</label>
+                        <input id="settingsTargetWeight" type="number" step="0.1"
+                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" onclick="saveProfileSettings()"
+                class="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition">
+                Сохранить мои изменения
+            </button>
+
+            <button type="button" onclick="previewWhitelistScreen()"
+                class="w-full py-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-rose-500/50 text-[11px] font-semibold text-slate-300 transition flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-shield-halved text-rose-400"></i> Посмотреть экран блокировки вайтлиста
+            </button>
+        </div>
+    </div>
+
+    <!-- НИЖНЯЯ НАВИГАЦИЯ -->
+    <nav class="fixed bottom-0 inset-x-0 z-30 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/80">
+        <div class="max-w-md mx-auto grid grid-cols-3 px-4 py-2 gap-2">
+            <button onclick="switchTab('calendar')" id="nav-calendar"
+                class="nav-btn flex flex-col items-center py-1.5 rounded-2xl text-indigo-400 bg-indigo-500/10 font-bold text-[11px]">
+                <i class="fa-solid fa-calendar-check text-base mb-0.5"></i>
+                <span>Календарь</span>
+            </button>
+            <button onclick="switchTab('weeks')" id="nav-weeks"
+                class="nav-btn flex flex-col items-center py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 font-bold text-[11px]">
+                <i class="fa-solid fa-list-check text-base mb-0.5"></i>
+                <span>Недели (8)</span>
+            </button>
+            <button onclick="switchTab('summary')" id="nav-summary"
+                class="nav-btn flex flex-col items-center py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 font-bold text-[11px]">
+                <i class="fa-solid fa-trophy text-base mb-0.5"></i>
+                <span>Summary</span>
+            </button>
+        </div>
+    </nav>
+
+    <script>
+        // =====================================================================
+        // ВАЙТЛИСТ TELEGRAM ID (ДОСТУП ТОЛЬКО ДЛЯ ВАС И ДРУГА)
+        // Впишите сюда те же числовые Telegram ID, что и в файле bot.py!
+        // =====================================================================
+        const ALLOWED_USER_IDS = [
+            123456789, // <-- Замените на ваш Telegram ID
+            987654321  // <-- Замените на Telegram ID вашего друга
+        ];
+
+        // Мотивирующие фразы после внесения тренировки
+        const MOTIVATION_QUOTES = [
+            "Ещё один уверенный шаг к заветным 128 баллам! Дисциплина побеждает лень в 100% случаев 🔥",
+            "Пока кто-то ищет отговорки, ты забираешь свой заслуженный +1 балл в календарь! Так держать 💪",
+            "Пусть друг увидит новую отметку в твоём календаре и поймёт, что победа в «НеБешенной НеСушке» просто так не достанется! ⚡",
+            "Каждая минута сегодняшней тренировки работает на твой триумф 29 декабря! Гордись собой 🏆",
+            "Тело скажет тебе спасибо, а табло 29 декабря покажет мощный результат. Продолжай в том же духе! ✨",
+            "Ты сегодня сильнее, чем вчера! Ещё одна галочка в «НеБешенной НеСушке» закрыта на отлично 🚀",
+            "Секрет успеха прост: шаг за шагом, тренировка за тренировкой. 128 баллов становятся всё ближе! 🎯",
+            "Энергия рождается в движении! Отличная работа, организм уже запустил процесс преображения 💥",
+            "Никакой спешки и срывов — только стабильный ритм «НеБешенной НеСушки» и уверенное движение к цели! 👑",
+            "Твоя сила воли сегодня на высоте! Отдохни, восстановись и готовься к новым рекордам 🌟"
+        ];
+
+        // =====================================================================
+        // КОНСТАНТЫ ЧЕЛЛЕНДЖА «НеБешенная НеСушка» (2 НОЯБРЯ — 29 ДЕКАБРЯ)
+        // =====================================================================
+        const START_DATE_STR = "2026-11-02";
+        const END_DATE_STR = "2026-12-29";
+        const FINALE_DATES = ["2026-12-27", "2026-12-28", "2026-12-29"];
+        // Таймер открытия Финала строго 29 декабря в 00:00:00
+        const FINALE_UNLOCK_TIMESTAMP = new Date("2026-12-29T00:00:00").getTime();
+        const MAX_WORKOUT_TARGET = 28;
+        const MAX_WEIGHT_SCORE = 100; // Максимум 100 баллов за вес (перевыполнение не учитывается)
+        const IDEAL_TOTAL_SCORE = 128;
+
+        const AVATAR_OPTIONS = ['🔥', '⚡', '👑', '💪', '🧘‍♀️', '🩰', '🦁', '✨', '🐵', '🦎'];
+
+        const WORKOUT_TYPES = {
+            home:  { label: 'Дома',       emoji: '🏠', color: 'bg-indigo-500' },
+            gym:   { label: 'Тренажерка', emoji: '🏋️‍♀️', color: 'bg-purple-500' },
+            dance: { label: 'Танцы',      emoji: '💃', color: 'bg-pink-500' },
+            other: { label: 'Другое',     emoji: '⚡', color: 'bg-amber-500' }
+        };
+
+        // 8 недель челленджа для проверки обязательного минимума (1 тренировка в неделю)
+        const CHALLENGE_WEEKS = [
+            { num: 1, label: "Неделя 1", start: "2026-11-02", end: "2026-11-08", rangeText: "2 ноя — 8 ноя" },
+            { num: 2, label: "Неделя 2", start: "2026-11-09", end: "2026-11-15", rangeText: "9 ноя — 15 ноя" },
+            { num: 3, label: "Неделя 3", start: "2026-11-16", end: "2026-11-22", rangeText: "16 ноя — 22 ноя" },
+            { num: 4, label: "Неделя 4", start: "2026-11-23", end: "2026-11-29", rangeText: "23 ноя — 29 ноя" },
+            { num: 5, label: "Неделя 5", start: "2026-11-30", end: "2026-12-06", rangeText: "30 ноя — 6 дек" },
+            { num: 6, label: "Неделя 6", start: "2026-12-07", end: "2026-12-13", rangeText: "7 дек — 13 дек" },
+            { num: 7, label: "Неделя 7", start: "2026-12-14", end: "2026-12-20", rangeText: "14 дек — 20 дек" },
+            { num: 8, label: "Неделя 8 (Финал)", start: "2026-12-21", end: "2026-12-29", rangeText: "21 дек — 29 дек" }
+        ];
+
+        // =====================================================================
+        // СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+        // =====================================================================
+        let appState = {
+            activeSlot: 'p1', // 'p1' или 'p2'
+            currentMonth: 10, // 10 = Ноябрь, 11 = Декабрь
+            selectedDate: "2026-11-02",
+            selectedWorkoutType: 'home',
+            regSelectedAvatar: '🔥',
+            settingsSelectedAvatar: '🔥',
+            players: {
+                p1: {
+                    registered: false,
+                    name: "Вы",
+                    avatar: "🔥",
+                    startWeight: 68.0,
+                    targetWeight: 62.0,
+                    workouts: {},
+                    weightLogs: {}
+                },
+                p2: {
+                    registered: true,
+                    name: "Друг",
+                    avatar: "🐵",
+                    startWeight: 72.0,
+                    targetWeight: 66.0,
+                    workouts: {
+                        "2026-11-02": { type: "gym", duration: 60 },
+                        "2026-11-04": { type: "dance", duration: 45 },
+                        "2026-11-07": { type: "home", duration: 40 }
+                    },
+                    weightLogs: {
+                        "2026-11-02": 72.0,
+                        "2026-12-28": 67.2
+                    }
+                }
+            }
+        };
+
+        // Инициализация Telegram WebApp API
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+        }
+
+        function getMe() {
+            return appState.players[appState.activeSlot];
+        }
+
+        function getFriend() {
+            return appState.players[appState.activeSlot === 'p1' ? 'p2' : 'p1'];
+        }
+
+        function isFinaleUnlocked() {
+            return Date.now() >= FINALE_UNLOCK_TIMESTAMP;
+        }
+
+        // =====================================================================
+        // ПРОВЕРКА ВАЙТЛИСТА (TELEGRAM ID)
+        // =====================================================================
+        function verifyWhitelistAccess() {
+            const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+            // Если Mini App открыто реально внутри Telegram (передан user.id), проверяем наличие в ALLOWED_USER_IDS
+            if (tgUser && tgUser.id) {
+                const numericId = Number(tgUser.id);
+                if (!ALLOWED_USER_IDS.includes(numericId)) {
+                    document.getElementById('blockedUserIdDisplay').textContent = tgUser.id;
+                    document.getElementById('closeWhitelistDemoBtn').classList.add('hidden');
+                    document.getElementById('whitelistLockModal').classList.remove('hidden');
+                    return false;
+                }
+                // Жёстко привязываем слот игрока к его Telegram ID из вайтлиста:
+                // Первый ID в ALLOWED_USER_IDS -> p1, Второй ID -> p2
+                appState.activeSlot = (numericId === Number(ALLOWED_USER_IDS[1])) ? 'p2' : 'p1';
+                // Скрываем демо-блок в реальном Telegram
+                const demoBox = document.getElementById('demoPreviewSwitcherBox');
+                if (demoBox) demoBox.classList.add('hidden');
+            }
+            return true;
+        }
+
+        function previewWhitelistScreen() {
+            closeSettingsModal();
+            const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+            document.getElementById('blockedUserIdDisplay').textContent = tgUser?.id || "777888999 (Демо-режим)";
+            document.getElementById('closeWhitelistDemoBtn').classList.remove('hidden');
+            document.getElementById('whitelistLockModal').classList.remove('hidden');
+        }
+
+        function closeWhitelistDemo() {
+            document.getElementById('whitelistLockModal').classList.add('hidden');
+        }
+
+        // =====================================================================
+        // НАСТРОЙКИ ЛИЧНОГО ПРОФИЛЯ (БЕЗ ДОСТУПА К ДАННЫМ ДРУГА)
+        // =====================================================================
+        function openSettingsModal() {
+            const me = getMe();
+            document.getElementById('settingsNameInput').value = me.name;
+            document.getElementById('settingsStartWeight').value = me.startWeight;
+            document.getElementById('settingsTargetWeight').value = me.targetWeight;
+            appState.settingsSelectedAvatar = me.avatar;
+
+            renderAvatarPicker('settingsAvatarGrid', appState.settingsSelectedAvatar, (emoji) => {
+                appState.settingsSelectedAvatar = emoji;
+                renderAvatarPicker('settingsAvatarGrid', appState.settingsSelectedAvatar, arguments.callee);
+            });
+
+            document.getElementById('settingsModal').classList.remove('hidden');
+        }
+
+        function closeSettingsModal() {
+            document.getElementById('settingsModal').classList.add('hidden');
+        }
+
+        function simulateFriendWorkoutToday() {
+            const friend = getFriend();
+            const dateStr = appState.selectedDate;
+            const types = ['home', 'gym', 'dance', 'other'];
+            if (friend.workouts[dateStr]) {
+                delete friend.workouts[dateStr];
+                showToast(`Тест: тренировка друга на ${formatRussianDate(dateStr)} убрана`, true);
+            } else {
+                const randomType = types[Math.floor(Math.random() * types.length)];
+                friend.workouts[dateStr] = { type: randomType, duration: 50 };
+                showToast(`Тест: друг отметил тренировку на ${formatRussianDate(dateStr)} (+1 балл)!`);
+            }
+            closeSettingsModal();
+            refreshAllUI();
+        }
+
+        function saveProfileSettings() {
+            const me = getMe();
+            const newName = document.getElementById('settingsNameInput').value.trim();
+            const startW = parseFloat(document.getElementById('settingsStartWeight').value);
+            const targetW = parseFloat(document.getElementById('settingsTargetWeight').value);
+
+            if (!newName || isNaN(startW) || isNaN(targetW) || startW <= targetW) {
+                showToast("Проверьте имя и корректность стартового/целевого веса", true);
+                return;
+            }
+
+            me.name = newName;
+            me.avatar = appState.settingsSelectedAvatar;
+            me.startWeight = startW;
+            me.targetWeight = targetW;
+            me.registered = true;
+
+            closeSettingsModal();
+            refreshAllUI();
+            showToast("Профиль обновлён!");
+        }
+
+        // =====================================================================
+        // ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК И ИНИЦИАЛИЗАЦИЯ
+        // =====================================================================
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
+            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+
+            const tabs = ['calendar', 'weeks', 'summary'];
+            tabs.forEach(t => {
+                const btn = document.getElementById(`nav-${t}`);
+                if (t === tabName) {
+                    btn.className = "nav-btn flex flex-col items-center py-1.5 rounded-2xl text-indigo-400 bg-indigo-500/10 font-bold text-[11px]";
+                } else {
+                    btn.className = "nav-btn flex flex-col items-center py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 font-bold text-[11px]";
+                }
+            });
+
+            refreshAllUI();
+        }
+
+        function refreshAllUI() {
+            renderHeaderDuel();
+            renderCalendarGrid();
+            renderSelectedDayEditor();
+            renderWeeksTab();
+            renderSummaryTab();
+        }
+
+        window.onload = function () {
+            if (!verifyWhitelistAccess()) {
+                return;
+            }
+            checkOnboarding();
+            refreshAllUI();
+            // Обновляем таймер обратного отсчёта до 29 декабря каждую секунду
+            setInterval(updateFinaleCountdownTimer, 1000);
+        };
+    </script>
+</body>
+</html>
