@@ -591,10 +591,9 @@
                     </div>
                 </div>
 
-                <!-- Адрес Python-сервера БД (опционально, если Mini App на GitHub Pages, а Python на другом домене) -->
                 <div>
                     <label class="block text-[11px] font-bold text-slate-400 mb-1">
-                        URL Python-сервера БД (оставьте пустым, если запущено с одного сервера)
+                        URL Python-сервера БД (оставьте пустым, если запущено на одном Render-сервере)
                     </label>
                     <input id="settingsApiUrlInput" type="url" placeholder="Например: https://my-bot.onrender.com"
                         class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
@@ -636,74 +635,57 @@
 
     <script>
         // =====================================================================
-        // 1. ВАЙТЛИСТ TELEGRAM ID (ДОСТУП ТОЛЬКО ДЛЯ ВАС И ДРУГА)
-        // Впишите сюда те же числовые Telegram ID, что и в файле bot.py!
+        // 1. КОНСТАНТЫ, ВАЙТЛИСТ И ПРАВИЛА ЧЕЛЛЕНДЖА «НЕБЕШЕННАЯ НЕСУШКА»
         // =====================================================================
-        const ALLOWED_USER_IDS = [
-            5835424498, // Участник 1
-            7647922685  // Участник 2
-        ];
-
-        // Если Mini App раздаётся прямо встроенным Python-сервером (bot.py), оставьте "".
-        // Если index.html лежит на GitHub Pages, а bot.py на Render/VPS — укажите URL сервера.
+        const ALLOWED_USER_IDS = [5835424498, 7647922685];
+        const STORAGE_KEY = "nesushka_128_v3_state";
         let PYTHON_API_BASE_URL = "";
 
-        // Мотивирующие фразы после внесения тренировки
-        const MOTIVATION_QUOTES = [
-            "Ещё один уверенный шаг к заветным 128 баллам! Дисциплина побеждает лень в 100% случаев 🔥",
-            "Пока кто-то ищет отговорки, ты забираешь свой заслуженный +1 балл в календарь! Так держать 💪",
-            "Пусть друг увидит новую отметку в твоём календаре и поймёт, что победа в «НеБешенной НеСушке» просто так не достанется! ⚡",
-            "Каждая минута сегодняшней тренировки работает на твой триумф 29 декабря! Гордись собой 🏆",
-            "Тело скажет тебе спасибо, а табло 29 декабря покажет мощный результат. Продолжай в том же духе! ✨",
-            "Ты сегодня сильнее, чем вчера! Ещё одна галочка в «НеБешенной НеСушке» закрыта на отлично 🚀",
-            "Секрет успеха прост: шаг за шагом, тренировка за тренировкой. 128 баллов становятся всё ближе! 🎯",
-            "Энергия рождается в движении! Отличная работа, организм уже запустил процесс преображения 💥",
-            "Никакой спешки и срывов — только стабильный ритм «НеБешенной НеСушки» и уверенное движение к цели! 👑",
-            "Твоя сила воли сегодня на высоте! Отдохни, восстановись и готовься к новым рекордам 🌟"
-        ];
-
-        // =====================================================================
-        // 2. КОНСТАНТЫ ЧЕЛЛЕНДЖА «НеБешенная НеСушка» (2 НОЯБРЯ — 29 ДЕКАБРЯ)
-        // =====================================================================
-        const STORAGE_KEY = "nesushka_128_full_state_v3";
         const START_DATE_STR = "2026-11-02";
         const END_DATE_STR = "2026-12-29";
         const FINALE_DATES = ["2026-12-27", "2026-12-28", "2026-12-29"];
-        // Таймер открытия Финала строго 29 декабря в 00:00:00
         const FINALE_UNLOCK_TIMESTAMP = new Date("2026-12-29T00:00:00").getTime();
+
         const MAX_WORKOUT_TARGET = 28;
-        const MAX_WEIGHT_SCORE = 100; // Максимум 100 баллов за вес (перевыполнение не учитывается!)
+        const MAX_WEIGHT_SCORE = 100;
         const IDEAL_TOTAL_SCORE = 128;
 
-        // Выбор аватарки (включая обезьяну 🐵 и ящерицу 🦎)
-        const AVATAR_OPTIONS = ['🔥', '⚡', '👑', '💪', '🧘‍♀️', '🩰', '🦁', '✨', '🐵', '🦎'];
+        const AVATAR_OPTIONS = ["🔥", "🐵", "🦎", "🐯", "🦊", "🐼", "⚡", "👑", "💪", "🚀"];
 
         const WORKOUT_TYPES = {
-            home:  { label: 'Дома',       emoji: '🏠', color: 'bg-indigo-500' },
-            gym:   { label: 'Тренажерка', emoji: '🏋️‍♀️', color: 'bg-purple-500' },
-            dance: { label: 'Танцы',      emoji: '💃', color: 'bg-pink-500' },
-            other: { label: 'Другое',     emoji: '⚡', color: 'bg-amber-500' }
+            home:  { label: "Дома",       emoji: "🏠", color: "bg-indigo-500" },
+            gym:   { label: "Тренажерка", emoji: "🏋️‍♀️", color: "bg-purple-500" },
+            dance: { label: "Танцы",      emoji: "💃", color: "bg-pink-500" },
+            other: { label: "Другое",     emoji: "⚡", color: "bg-emerald-500" }
         };
 
-        // 8 недель челленджа для проверки обязательного минимума (1 тренировка в неделю)
         const CHALLENGE_WEEKS = [
-            { num: 1, label: "Неделя 1", start: "2026-11-02", end: "2026-11-08", rangeText: "2 ноя — 8 ноя" },
-            { num: 2, label: "Неделя 2", start: "2026-11-09", end: "2026-11-15", rangeText: "9 ноя — 15 ноя" },
-            { num: 3, label: "Неделя 3", start: "2026-11-16", end: "2026-11-22", rangeText: "16 ноя — 22 ноя" },
-            { num: 4, label: "Неделя 4", start: "2026-11-23", end: "2026-11-29", rangeText: "23 ноя — 29 ноя" },
-            { num: 5, label: "Неделя 5", start: "2026-11-30", end: "2026-12-06", rangeText: "30 ноя — 6 дек" },
-            { num: 6, label: "Неделя 6", start: "2026-12-07", end: "2026-12-13", rangeText: "7 дек — 13 дек" },
-            { num: 7, label: "Неделя 7", start: "2026-12-14", end: "2026-12-20", rangeText: "14 дек — 20 дек" },
-            { num: 8, label: "Неделя 8 (Финал)", start: "2026-12-21", end: "2026-12-29", rangeText: "21 дек — 29 дек" }
+            { num: 1, label: "Неделя 1", rangeText: "2 ноя — 8 ноя",   start: "2026-11-02", end: "2026-11-08" },
+            { num: 2, label: "Неделя 2", rangeText: "9 ноя — 15 ноя",  start: "2026-11-09", end: "2026-11-15" },
+            { num: 3, label: "Неделя 3", rangeText: "16 ноя — 22 ноя", start: "2026-11-16", end: "2026-11-22" },
+            { num: 4, label: "Неделя 4", rangeText: "23 ноя — 29 ноя", start: "2026-11-23", end: "2026-11-29" },
+            { num: 5, label: "Неделя 5", rangeText: "30 ноя — 6 дек",  start: "2026-11-30", end: "2026-12-06" },
+            { num: 6, label: "Неделя 6", rangeText: "7 дек — 13 дек",  start: "2026-12-07", end: "2026-12-13" },
+            { num: 7, label: "Неделя 7", rangeText: "14 дек — 20 дек", start: "2026-12-14", end: "2026-12-20" },
+            { num: 8, label: "Неделя 8 (Финал)", rangeText: "21 дек — 29 дек", start: "2026-12-21", end: "2026-12-29" }
+        ];
+
+        const MOTIVATION_QUOTES = [
+            "Дисциплина — это решение делать то, чего очень не хочется делать, чтобы достичь того, чего очень хочется достичь!",
+            "Ещё +1 балл в копилку 128! Ты сегодня на шаг ближе к своей идеальной форме.",
+            "Твой друг увидит эту тренировку в календаре и поймёт, что ты не собираешься сдаваться!",
+            "Маленькие шаги каждый день приводят к грандиозным результатам 29 декабря!",
+            "Отличная тренировка! Мышцы работают, баллы растут, цель 128 всё ближе!",
+            "Гордись собой! Обязательный минимум недели закрывается уверенно и красиво."
         ];
 
         // =====================================================================
-        // 3. СОСТОЯНИЕ ПРИЛОЖЕНИЯ + LOCALSTORAGE + PYTHON SQLITE SYNC
+        // 3. СОСТОЯНИЕ ПРИЛОЖЕНИЯ + ТРОЙНОЕ СОХРАНЕНИЕ (CLOUDSTORAGE + БД + LOCALSTORAGE)
         // =====================================================================
         let appState = {
-            activeSlot: 'p1', // 'p1' (ALLOWED_USER_IDS[0]) или 'p2' (ALLOWED_USER_IDS[1])
+            activeSlot: 'p1',
             currentUserId: ALLOWED_USER_IDS[0],
-            currentMonth: 10, // 10 = Ноябрь, 11 = Декабрь
+            currentMonth: 10,
             selectedDate: "2026-11-02",
             selectedWorkoutType: 'home',
             regSelectedAvatar: '🔥',
@@ -726,15 +708,8 @@
                     avatar: "🐵",
                     startWeight: 72.0,
                     targetWeight: 66.0,
-                    workouts: {
-                        "2026-11-02": { type: "gym", duration: 60 },
-                        "2026-11-04": { type: "dance", duration: 45 },
-                        "2026-11-07": { type: "home", duration: 40 }
-                    },
-                    weightLogs: {
-                        "2026-11-02": 72.0,
-                        "2026-12-28": 67.2
-                    },
+                    workouts: {},
+                    weightLogs: {},
                     serverFinaleWeightScore: null
                 }
             }
@@ -745,8 +720,78 @@
             window.Telegram.WebApp.expand();
         }
 
+        // Проверяем, передал ли бот адрес сервера через ?api=...
+        (function detectUrlApiParam() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                const apiParam = params.get("api");
+                if (apiParam) {
+                    PYTHON_API_BASE_URL = apiParam.replace(/\/+$/, "");
+                }
+            } catch (e) {}
+        })();
+
+        // 1) Сохранение в облако Telegram (Telegram.WebApp.CloudStorage) — НЕ сбрасывается никогда!
+        function saveToTelegramCloud() {
+            try {
+                const cs = window.Telegram?.WebApp?.CloudStorage;
+                if (!cs) return;
+                const me = getMe();
+                const payload = JSON.stringify({
+                    registered: Boolean(me.registered),
+                    name: me.name,
+                    avatar: me.avatar,
+                    startWeight: me.startWeight,
+                    targetWeight: me.targetWeight,
+                    workouts: me.workouts || {},
+                    weightLogs: me.weightLogs || {}
+                });
+                const key = `nesushka_user_${appState.currentUserId}`;
+                cs.setItem(key, payload, function (err) {
+                    if (err) console.warn("CloudStorage setItem error:", err);
+                });
+            } catch (e) {
+                console.warn("CloudStorage not supported in this environment:", e);
+            }
+        }
+
+        function loadFromTelegramCloud() {
+            return new Promise((resolve) => {
+                try {
+                    const cs = window.Telegram?.WebApp?.CloudStorage;
+                    if (!cs) return resolve(false);
+                    const key = `nesushka_user_${appState.currentUserId}`;
+                    cs.getItem(key, function (err, value) {
+                        if (err || !value) return resolve(false);
+                        try {
+                            const parsed = JSON.parse(value);
+                            if (parsed && parsed.registered) {
+                                const me = getMe();
+                                me.registered = true;
+                                me.name = parsed.name || me.name;
+                                me.avatar = parsed.avatar || me.avatar;
+                                me.startWeight = Number(parsed.startWeight) || me.startWeight;
+                                me.targetWeight = Number(parsed.targetWeight) || me.targetWeight;
+                                me.workouts = { ...(parsed.workouts || {}), ...(me.workouts || {}) };
+                                me.weightLogs = { ...(parsed.weightLogs || {}), ...(me.weightLogs || {}) };
+                                return resolve(true);
+                            }
+                        } catch (parseErr) {
+                            console.warn("CloudStorage parse error:", parseErr);
+                        }
+                        resolve(false);
+                    });
+                } catch (e) {
+                    resolve(false);
+                }
+            });
+        }
+
+        // 2) Сохранение в LocalStorage (с привязкой к конкретному Telegram ID + общий ключ)
         function saveStateToLocal() {
             try {
+                const me = getMe();
+                localStorage.setItem(`${STORAGE_KEY}_uid_${appState.currentUserId}`, JSON.stringify(me));
                 localStorage.setItem(STORAGE_KEY, JSON.stringify({
                     players: appState.players,
                     apiBaseUrl: appState.apiBaseUrl
@@ -754,18 +799,28 @@
             } catch (e) {
                 console.warn("LocalStorage save error:", e);
             }
+            saveToTelegramCloud();
         }
 
         function loadStateFromLocal() {
             try {
                 const raw = localStorage.getItem(STORAGE_KEY);
-                if (!raw) return;
-                const parsed = JSON.parse(raw);
-                if (parsed.players && parsed.players.p1 && parsed.players.p2) {
-                    appState.players = parsed.players;
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (parsed.players && parsed.players.p1 && parsed.players.p2) {
+                        appState.players = parsed.players;
+                    }
+                    if (parsed.apiBaseUrl) {
+                        appState.apiBaseUrl = parsed.apiBaseUrl;
+                    }
                 }
-                if (parsed.apiBaseUrl) {
-                    appState.apiBaseUrl = parsed.apiBaseUrl;
+                const userRaw = localStorage.getItem(`${STORAGE_KEY}_uid_${appState.currentUserId}`);
+                if (userRaw) {
+                    const userParsed = JSON.parse(userRaw);
+                    if (userParsed && userParsed.registered) {
+                        const me = getMe();
+                        Object.assign(me, userParsed);
+                    }
                 }
             } catch (e) {
                 console.warn("LocalStorage load error:", e);
@@ -776,42 +831,49 @@
             return (appState.apiBaseUrl || PYTHON_API_BASE_URL || "").replace(/\/+$/, "");
         }
 
-        // Синхронизация с Python-сервером (bot.py SQLite)
+        // 3) Двусторонняя синхронизация с Python-сервером (SQLite)
         async function syncFromPythonServer() {
             const base = getEffectiveApiBase();
             const badge = document.getElementById('dbSyncBadge');
             try {
-                const res = await fetch(`${base}/api/state?user_id=${appState.currentUserId}`, {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' }
+                const meLocal = getMe();
+                const res = await fetch(`${base}/api/sync_backup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        user_id: appState.currentUserId,
+                        local_me: meLocal
+                    })
                 });
                 if (!res.ok) throw new Error("API not reachable");
                 const data = await res.json();
                 if (data && data.ok) {
                     const me = getMe();
                     const friend = getFriend();
-                    if (data.me) {
-                        me.registered = Boolean(data.me.registered);
+                    if (data.me && data.me.registered) {
+                        me.registered = true;
                         me.name = data.me.name || me.name;
                         me.avatar = data.me.avatar || me.avatar;
                         if (data.me.startWeight) me.startWeight = Number(data.me.startWeight);
                         if (data.me.targetWeight) me.targetWeight = Number(data.me.targetWeight);
-                        me.workouts = data.me.workouts || {};
-                        me.weightLogs = data.me.weightLogs || {};
+                        me.workouts = { ...(me.workouts || {}), ...(data.me.workouts || {}) };
+                        me.weightLogs = { ...(me.weightLogs || {}), ...(data.me.weightLogs || {}) };
                     }
                     if (data.friend) {
                         friend.registered = Boolean(data.friend.registered);
                         friend.name = data.friend.name || friend.name;
                         friend.avatar = data.friend.avatar || friend.avatar;
                         friend.workouts = data.friend.workouts || {};
-                        // Защита приватности: сервер НЕ присылает килограммы друга, а только финальный балл после 29.12
                         friend.serverFinaleWeightScore = (typeof data.friend.finaleWeightScore === 'number')
                             ? data.friend.finaleWeightScore
                             : null;
                     }
                     saveStateToLocal();
                     if (badge) {
-                        badge.textContent = "🟢 БД Python подключена";
+                        badge.textContent = "🟢 БД + Cloud синхр.";
                         badge.className = "text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
                     }
                     refreshAllUI();
@@ -819,7 +881,7 @@
                 }
             } catch (err) {
                 if (badge) {
-                    badge.textContent = "💾 Память устройства";
+                    badge.textContent = "☁️ Telegram Cloud";
                     badge.className = "text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30";
                 }
             }
@@ -842,7 +904,7 @@
                     await syncFromPythonServer();
                 }
             } catch (e) {
-                // Если запущено автономно на GitHub Pages без сервера, данные уже надежно сохранены в LocalStorage
+                // Данные уже сохранены в LocalStorage и автоматически отправятся при следующем коннекте
             }
         }
 
@@ -872,7 +934,6 @@
                     return false;
                 }
                 appState.currentUserId = numericId;
-                // Первый ID в ALLOWED_USER_IDS -> p1, Второй ID -> p2
                 appState.activeSlot = (numericId === Number(ALLOWED_USER_IDS[1])) ? 'p2' : 'p1';
                 const demoBox = document.getElementById('demoPreviewSwitcherBox');
                 if (demoBox) demoBox.classList.add('hidden');
@@ -917,7 +978,6 @@
             if (finaleVals.length > 0) {
                 return Math.min(...finaleVals);
             }
-            // Если 27–29 декабря ещё не заполнены, берём минимальный из записанных для личной подсказки
             const allVals = Object.values(logs).map(v => parseFloat(v)).filter(v => !isNaN(v) && v > 0);
             if (allVals.length > 0) {
                 return Math.min(...allVals);
@@ -925,7 +985,6 @@
             return player.startWeight;
         }
 
-        // Расчёт баллов за вес: СТРОГО НЕ БОЛЕЕ 100 БАЛЛОВ (перевыполнение не учитывается!)
         function calculateWeightScore(player) {
             if (typeof player.serverFinaleWeightScore === 'number' && player !== getMe()) {
                 return Math.min(MAX_WEIGHT_SCORE, Math.max(0, player.serverFinaleWeightScore));
@@ -940,7 +999,6 @@
             if (actualLost <= 0) return 0;
 
             const rawPercent = (actualLost / goalDelta) * 100;
-            // Ограничение сверху: максимум 100 баллов!
             const cappedScore = Math.min(MAX_WEIGHT_SCORE, Math.max(0, rawPercent));
             return Math.round(cappedScore * 10) / 10;
         }
@@ -1084,7 +1142,6 @@
                 friendLockTag.textContent = `🔒 скрыто`;
             }
 
-            // Проверка обязательного минимума недели, к которой относится выбранная дата
             const activeWeek = CHALLENGE_WEEKS.find(w => appState.selectedDate >= w.start && appState.selectedDate <= w.end) || CHALLENGE_WEEKS[0];
             const weekWorkouts = getWorkoutsInDateRange(me, activeWeek.start, activeWeek.end);
 
@@ -1142,12 +1199,12 @@
             grid.innerHTML = '';
 
             const year = 2026;
-            const month = appState.currentMonth; // 10 (Ноябрь) или 11 (Декабрь)
+            const month = appState.currentMonth;
             const daysInMonth = new Date(year, month + 1, 0).getDate();
 
             const firstDayDate = new Date(year, month, 1);
             let startOffset = firstDayDate.getDay() - 1;
-            if (startOffset < 0) startOffset = 6; // Воскресенье -> 6
+            if (startOffset < 0) startOffset = 6;
 
             for (let i = 0; i < startOffset; i++) {
                 const empty = document.createElement('div');
@@ -1247,14 +1304,12 @@
 
             document.getElementById('selectedDateTitle').textContent = formatRussianDate(dateStr);
 
-            // Бейджи дня
             const badgesBox = document.getElementById('selectedDayBadges');
             badgesBox.innerHTML = '';
             if (FINALE_DATES.includes(dateStr)) {
                 badgesBox.innerHTML += `<span class="text-[10px] font-bold px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40">⭐ Финальный замер веса</span>`;
             }
 
-            // Показываем активность друга в этот день (только факт тренировки и вид, БЕЗ ВЕСА)
             const friendBox = document.getElementById('friendDayActivityBox');
             const friendWorkout = friend.workouts[dateStr];
             if (friendWorkout) {
@@ -1266,7 +1321,6 @@
                 friendBox.classList.add('hidden');
             }
 
-            // Заполняем форму своей тренировки
             const myWorkout = me.workouts[dateStr];
             const btnDelete = document.getElementById('btnDeleteWorkout');
             if (myWorkout) {
@@ -1278,7 +1332,6 @@
                 btnDelete.classList.add('hidden');
             }
 
-            // Заполняем приватный вес
             const weightInput = document.getElementById('dayWeightInput');
             const finaleHint = document.getElementById('finaleWindowHint');
             if (FINALE_DATES.includes(dateStr)) {
@@ -1289,7 +1342,6 @@
 
             weightInput.value = (me.weightLogs && me.weightLogs[dateStr] !== undefined) ? me.weightLogs[dateStr] : '';
 
-            // Личная подсказка о прогрессе по весу (видна ТОЛЬКО самому пользователю)
             const myWeightPts = calculateWeightScore(me);
             const hintEl = document.getElementById('myPrivateProgressHint');
             hintEl.innerHTML = `🔒 <b>Видно только вам:</b> старт 2.11: <b>${me.startWeight} кг</b> → цель: <b>${me.targetWeight} кг</b>. Текущий расчёт за вес: <b class="text-emerald-300">${myWeightPts} из 100 баллов</b> (перевыполнение свыше 100 не учитывается).`;
@@ -1496,7 +1548,6 @@
                 }
             }
 
-            // Карточки сравнения игроков
             const compBox = document.getElementById('summaryPlayersComparison');
             compBox.innerHTML = `
                 <div class="bg-slate-900/85 rounded-2xl p-3.5 border border-indigo-500/40 space-y-2">
@@ -1524,7 +1575,6 @@
                 </div>
             `;
 
-            // Подробная статистика тренировок пользователя
             const workoutsArr = Object.values(me.workouts || {});
             const totalCount = workoutsArr.length;
             const totalMinutes = workoutsArr.reduce((acc, w) => acc + (parseInt(w.duration, 10) || 0), 0);
@@ -1689,11 +1739,17 @@
         }
 
         window.onload = async function () {
-            loadStateFromLocal();
+            // 1. Сначала определяем Telegram ID и активный слот (p1 или p2), чтобы читать правильный профиль!
             if (!verifyWhitelistAccess()) {
                 return;
             }
+            // 2. Загружаем данные из LocalStorage для этого Telegram ID
+            loadStateFromLocal();
+            // 3. Загружаем данные из облака Telegram (Telegram.WebApp.CloudStorage), которое не стирается при закрытии Mini App
+            await loadFromTelegramCloud();
+            // 4. Синхронизируемся с базой данных SQLite на Python-сервере
             await syncFromPythonServer();
+            // 5. И только после проверки всех 3 хранилищ проверяем, нужна ли регистрация
             checkOnboarding();
             refreshAllUI();
             setInterval(updateFinaleCountdownTimer, 1000);
