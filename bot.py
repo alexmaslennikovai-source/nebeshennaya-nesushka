@@ -39,7 +39,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 BOT_TOKEN = os.getenv("BOT_TOKEN", "9295051811:AAHbs35ZOiZCdViNhVqNjOnr78zznpMlm7A")
 
 # Ссылка на ваш Mini App (например, GitHub Pages или адрес вашего Render-сервера)
-MINI_APP_URL = os.getenv("MINI_APP_URL", "https://ваш-логин.github.io/nebeshennaya-nesushka/")
+MINI_APP_URL = os.getenv("MINI_APP_URL", "https://nebeshennaya-nesushka.onrender.com/")
 
 # Порт встроенного веб-сервера для базы данных и раздачи index.html
 PORT = int(os.getenv("PORT", 8080))
