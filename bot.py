@@ -36,7 +36,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 # =====================================================================
 # НАСТРОЙКИ БОТА, СЕРВЕРА И ВАЙТЛИСТ УЧАСТНИКОВ
 # =====================================================================
-BOT_TOKEN = os.getenv("BOT_TOKEN", "ВАШ_ТОКЕН_ОТ_BOTFATHER")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "9295051811:AAHbs35ZOiZCdViNhVqNjOnr78zznpMlm7A")
 
 # Ссылка на ваш Mini App (например, GitHub Pages или адрес вашего Render-сервера)
 MINI_APP_URL = os.getenv("MINI_APP_URL", "https://ваш-логин.github.io/nebeshennaya-nesushka/")
@@ -47,8 +47,8 @@ PORT = int(os.getenv("PORT", 8080))
 # ВАЙТЛИСТ: Впишите сюда ваш Telegram ID и Telegram ID вашего друга.
 # Никто другой не сможет пользоваться ботом или обращаться к базе данных!
 ALLOWED_USER_IDS = [
-    123456789,  # <-- Замените на ваш Telegram ID (Участник 1)
-    987654321,  # <-- Замените на Telegram ID вашего друга (Участник 2)
+    5835424498,  # Участник 1
+    7647922685,  # Участник 2
 ]
 
 DB_PATH = "nesushka128.db"
