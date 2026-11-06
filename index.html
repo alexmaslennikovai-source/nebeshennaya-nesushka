@@ -53,7 +53,7 @@
                 </span>
                 <h2 class="text-xl font-black text-white">Доступ закрыт</h2>
                 <p class="text-xs text-slate-300 leading-relaxed">
-                    Челлендж <b>«НеБешенная НеСушка»</b> доступен только для участников, чьи Telegram ID добавлены в вайтлист в коде бота.
+                    Челлендж <b>«НеБешенная НеСушка»</b> доступен только для двух друзей, чьи Telegram ID добавлены в вайтлист в коде бота.
                 </p>
             </div>
             <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-3 text-xs space-y-1">
@@ -138,7 +138,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Выберите аватарку</label>
+                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Выберите аватарку (включая 🐵 и 🦎)</label>
                     <div id="regAvatarGrid" class="grid grid-cols-5 gap-2"></div>
                 </div>
 
@@ -181,11 +181,16 @@
                         <h1 class="text-base font-black tracking-tight text-white">НеБешенная НеСушка</h1>
                         <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">128 pts</span>
                     </div>
-                    <p class="text-[11px] text-slate-400">2 ноября — 29 декабря • Дуэль с другом</p>
+                    <div class="flex items-center gap-2">
+                        <p class="text-[11px] text-slate-400">2 ноя — 29 дек • Дуэль с другом</p>
+                        <span id="dbSyncBadge" class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+                            💾 Автосохранение
+                        </span>
+                    </div>
                 </div>
             </div>
 
-            <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl glass-card flex items-center justify-center text-slate-300 hover:text-white transition" title="Профиль и переключение участника">
+            <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl glass-card flex items-center justify-center text-slate-300 hover:text-white transition" title="Личный профиль и настройки БД">
                 <i class="fa-solid fa-sliders text-sm"></i>
             </button>
         </div>
@@ -193,7 +198,7 @@
         <!-- КАРТОЧКА ДУЭЛИ (ВЫ ПРОТИВ ДРУГА) -->
         <div class="glass-card rounded-3xl p-4 shadow-xl border border-indigo-500/20 space-y-3">
             <div class="flex items-center justify-between text-[11px] text-slate-400 font-medium">
-                <span>🎯 Цель: <strong class="text-amber-300">128 баллов</strong> (28 трен. + макс. 100% вес)</span>
+                <span>🎯 Цель: <strong class="text-amber-300">128 баллов</strong> (28 трен. + макс. 100 вес)</span>
                 <span id="duelPrivacyBadge" class="text-emerald-400 font-semibold flex items-center gap-1">
                     <i class="fa-solid fa-eye-slash"></i> Вес скрыт до 29.12
                 </span>
@@ -226,7 +231,7 @@
                 <!-- Игрок 2 (Друг) -->
                 <div class="bg-slate-900/75 rounded-2xl p-3 border border-pink-500/30 relative overflow-hidden">
                     <div class="flex items-center gap-2 mb-2">
-                        <span id="friendAvatar" class="text-xl">⚡</span>
+                        <span id="friendAvatar" class="text-xl">🐵</span>
                         <div class="min-w-0">
                             <div class="flex items-center gap-1">
                                 <span id="friendName" class="text-xs font-bold text-white truncate">Друг</span>
@@ -527,9 +532,9 @@
 
     </main>
 
-    <!-- МОДАЛЬНОЕ ОКНО НАСТРОЕК И ПЕРЕКЛЮЧЕНИЯ ИГРОКА -->
-    <div id="settingsModal" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
-        <div class="glass-card rounded-3xl p-5 max-w-md w-full border border-slate-700 space-y-4">
+    <!-- МОДАЛЬНОЕ ОКНО НАСТРОЕК ЛИЧНОГО ПРОФИЛЯ (БЕЗ ДОСТУПА К ДАННЫМ ДРУГА) -->
+    <div id="settingsModal" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden overflow-y-auto">
+        <div class="glass-card rounded-3xl p-5 max-w-md w-full border border-slate-700 space-y-4 my-auto">
             <div class="flex items-center justify-between">
                 <h3 class="text-base font-extrabold text-white">Ваш личный профиль</h3>
                 <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-300 hover:text-white">
@@ -540,11 +545,11 @@
             <div class="rounded-2xl bg-emerald-950/40 border border-emerald-500/30 p-3 flex items-start gap-2.5">
                 <i class="fa-solid fa-user-shield text-emerald-400 text-sm mt-0.5"></i>
                 <p class="text-[11px] text-emerald-100/90 leading-relaxed">
-                    Здесь отображаются <b>только ваши личные настройки</b>. Данные о весе вашего друга зашифрованы и недоступны для просмотра.
+                    Здесь отображаются <b>только ваши личные настройки</b>. Данные о весе вашего друга зашифрованы и никогда не передаются на ваше устройство.
                 </p>
             </div>
 
-            <!-- Блок демо-переключения (виден ТОЛЬКО вне Telegram при тестировании в браузере, без показа чужого веса) -->
+            <!-- Блок демо-симуляции (виден ТОЛЬКО вне Telegram при тестировании в браузере, без показа чужого веса) -->
             <div id="demoPreviewSwitcherBox" class="space-y-1.5 bg-slate-900/90 border border-amber-500/30 rounded-2xl p-3">
                 <div class="flex items-center justify-between">
                     <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-300">
@@ -553,7 +558,7 @@
                     <span class="text-[10px] text-slate-400">В Telegram скрыто</span>
                 </div>
                 <p class="text-[11px] text-slate-400 leading-snug">
-                    В реальном Telegram профиль жёстко привязан к вашему <code>Telegram ID</code>. В предпросмотре вы можете добавить тестовую тренировку за друга, не видя его вес:
+                    В реальном Telegram профиль жёстко привязан к вашему <code>Telegram ID</code>. В предпросмотре вы можете симулировать тренировку друга на выбранный день, не видя его вес:
                 </p>
                 <button type="button" onclick="simulateFriendWorkoutToday()"
                     class="w-full mt-1 py-2 rounded-xl bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/40 text-pink-200 text-xs font-bold transition">
@@ -584,6 +589,15 @@
                         <input id="settingsTargetWeight" type="number" step="0.1"
                             class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
                     </div>
+                </div>
+
+                <!-- Адрес Python-сервера БД (опционально, если Mini App на GitHub Pages, а Python на другом домене) -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-400 mb-1">
+                        URL Python-сервера БД (оставьте пустым, если запущено с одного сервера)
+                    </label>
+                    <input id="settingsApiUrlInput" type="url" placeholder="Например: https://my-bot.onrender.com"
+                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
                 </div>
             </div>
 
@@ -622,13 +636,17 @@
 
     <script>
         // =====================================================================
-        // ВАЙТЛИСТ TELEGRAM ID (ДОСТУП ТОЛЬКО ДЛЯ ВАС И ДРУГА)
+        // 1. ВАЙТЛИСТ TELEGRAM ID (ДОСТУП ТОЛЬКО ДЛЯ ВАС И ДРУГА)
         // Впишите сюда те же числовые Telegram ID, что и в файле bot.py!
         // =====================================================================
         const ALLOWED_USER_IDS = [
-            123456789, // <-- Замените на ваш Telegram ID
-            987654321  // <-- Замените на Telegram ID вашего друга
+            123456789, // <-- Замените на ваш Telegram ID (Участник 1)
+            987654321  // <-- Замените на Telegram ID вашего друга (Участник 2)
         ];
+
+        // Если Mini App раздаётся прямо встроенным Python-сервером (bot.py), оставьте "".
+        // Если index.html лежит на GitHub Pages, а bot.py на Render/VPS — укажите URL сервера.
+        let PYTHON_API_BASE_URL = "";
 
         // Мотивирующие фразы после внесения тренировки
         const MOTIVATION_QUOTES = [
@@ -645,17 +663,19 @@
         ];
 
         // =====================================================================
-        // КОНСТАНТЫ ЧЕЛЛЕНДЖА «НеБешенная НеСушка» (2 НОЯБРЯ — 29 ДЕКАБРЯ)
+        // 2. КОНСТАНТЫ ЧЕЛЛЕНДЖА «НеБешенная НеСушка» (2 НОЯБРЯ — 29 ДЕКАБРЯ)
         // =====================================================================
+        const STORAGE_KEY = "nesushka_128_full_state_v3";
         const START_DATE_STR = "2026-11-02";
         const END_DATE_STR = "2026-12-29";
         const FINALE_DATES = ["2026-12-27", "2026-12-28", "2026-12-29"];
         // Таймер открытия Финала строго 29 декабря в 00:00:00
         const FINALE_UNLOCK_TIMESTAMP = new Date("2026-12-29T00:00:00").getTime();
         const MAX_WORKOUT_TARGET = 28;
-        const MAX_WEIGHT_SCORE = 100; // Максимум 100 баллов за вес (перевыполнение не учитывается)
+        const MAX_WEIGHT_SCORE = 100; // Максимум 100 баллов за вес (перевыполнение не учитывается!)
         const IDEAL_TOTAL_SCORE = 128;
 
+        // Выбор аватарки (включая обезьяну 🐵 и ящерицу 🦎)
         const AVATAR_OPTIONS = ['🔥', '⚡', '👑', '💪', '🧘‍♀️', '🩰', '🦁', '✨', '🐵', '🦎'];
 
         const WORKOUT_TYPES = {
@@ -678,15 +698,17 @@
         ];
 
         // =====================================================================
-        // СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+        // 3. СОСТОЯНИЕ ПРИЛОЖЕНИЯ + LOCALSTORAGE + PYTHON SQLITE SYNC
         // =====================================================================
         let appState = {
-            activeSlot: 'p1', // 'p1' или 'p2'
+            activeSlot: 'p1', // 'p1' (ALLOWED_USER_IDS[0]) или 'p2' (ALLOWED_USER_IDS[1])
+            currentUserId: ALLOWED_USER_IDS[0],
             currentMonth: 10, // 10 = Ноябрь, 11 = Декабрь
             selectedDate: "2026-11-02",
             selectedWorkoutType: 'home',
             regSelectedAvatar: '🔥',
             settingsSelectedAvatar: '🔥',
+            apiBaseUrl: "",
             players: {
                 p1: {
                     registered: false,
@@ -695,7 +717,8 @@
                     startWeight: 68.0,
                     targetWeight: 62.0,
                     workouts: {},
-                    weightLogs: {}
+                    weightLogs: {},
+                    serverFinaleWeightScore: null
                 },
                 p2: {
                     registered: true,
@@ -711,15 +734,116 @@
                     weightLogs: {
                         "2026-11-02": 72.0,
                         "2026-12-28": 67.2
-                    }
+                    },
+                    serverFinaleWeightScore: null
                 }
             }
         };
 
-        // Инициализация Telegram WebApp API
         if (window.Telegram && window.Telegram.WebApp) {
             window.Telegram.WebApp.ready();
             window.Telegram.WebApp.expand();
+        }
+
+        function saveStateToLocal() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    players: appState.players,
+                    apiBaseUrl: appState.apiBaseUrl
+                }));
+            } catch (e) {
+                console.warn("LocalStorage save error:", e);
+            }
+        }
+
+        function loadStateFromLocal() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                const parsed = JSON.parse(raw);
+                if (parsed.players && parsed.players.p1 && parsed.players.p2) {
+                    appState.players = parsed.players;
+                }
+                if (parsed.apiBaseUrl) {
+                    appState.apiBaseUrl = parsed.apiBaseUrl;
+                }
+            } catch (e) {
+                console.warn("LocalStorage load error:", e);
+            }
+        }
+
+        function getEffectiveApiBase() {
+            return (appState.apiBaseUrl || PYTHON_API_BASE_URL || "").replace(/\/+$/, "");
+        }
+
+        // Синхронизация с Python-сервером (bot.py SQLite)
+        async function syncFromPythonServer() {
+            const base = getEffectiveApiBase();
+            const badge = document.getElementById('dbSyncBadge');
+            try {
+                const res = await fetch(`${base}/api/state?user_id=${appState.currentUserId}`, {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' }
+                });
+                if (!res.ok) throw new Error("API not reachable");
+                const data = await res.json();
+                if (data && data.ok) {
+                    const me = getMe();
+                    const friend = getFriend();
+                    if (data.me) {
+                        me.registered = Boolean(data.me.registered);
+                        me.name = data.me.name || me.name;
+                        me.avatar = data.me.avatar || me.avatar;
+                        if (data.me.startWeight) me.startWeight = Number(data.me.startWeight);
+                        if (data.me.targetWeight) me.targetWeight = Number(data.me.targetWeight);
+                        me.workouts = data.me.workouts || {};
+                        me.weightLogs = data.me.weightLogs || {};
+                    }
+                    if (data.friend) {
+                        friend.registered = Boolean(data.friend.registered);
+                        friend.name = data.friend.name || friend.name;
+                        friend.avatar = data.friend.avatar || friend.avatar;
+                        friend.workouts = data.friend.workouts || {};
+                        // Защита приватности: сервер НЕ присылает килограммы друга, а только финальный балл после 29.12
+                        friend.serverFinaleWeightScore = (typeof data.friend.finaleWeightScore === 'number')
+                            ? data.friend.finaleWeightScore
+                            : null;
+                    }
+                    saveStateToLocal();
+                    if (badge) {
+                        badge.textContent = "🟢 БД Python подключена";
+                        badge.className = "text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+                    }
+                    refreshAllUI();
+                    return true;
+                }
+            } catch (err) {
+                if (badge) {
+                    badge.textContent = "💾 Память устройства";
+                    badge.className = "text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30";
+                }
+            }
+            return false;
+        }
+
+        async function postToPythonServer(endpoint, payload) {
+            saveStateToLocal();
+            const base = getEffectiveApiBase();
+            try {
+                const res = await fetch(`${base}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        user_id: appState.currentUserId,
+                        ...payload
+                    })
+                });
+                if (res.ok) {
+                    await syncFromPythonServer();
+                }
+            } catch (e) {
+                // Если запущено автономно на GitHub Pages без сервера, данные уже надежно сохранены в LocalStorage
+            }
         }
 
         function getMe() {
@@ -735,11 +859,10 @@
         }
 
         // =====================================================================
-        // ПРОВЕРКА ВАЙТЛИСТА (TELEGRAM ID)
+        // 4. ПРОВЕРКА ВАЙТЛИСТА (TELEGRAM ID)
         // =====================================================================
         function verifyWhitelistAccess() {
             const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-            // Если Mini App открыто реально внутри Telegram (передан user.id), проверяем наличие в ALLOWED_USER_IDS
             if (tgUser && tgUser.id) {
                 const numericId = Number(tgUser.id);
                 if (!ALLOWED_USER_IDS.includes(numericId)) {
@@ -748,10 +871,9 @@
                     document.getElementById('whitelistLockModal').classList.remove('hidden');
                     return false;
                 }
-                // Жёстко привязываем слот игрока к его Telegram ID из вайтлиста:
+                appState.currentUserId = numericId;
                 // Первый ID в ALLOWED_USER_IDS -> p1, Второй ID -> p2
                 appState.activeSlot = (numericId === Number(ALLOWED_USER_IDS[1])) ? 'p2' : 'p1';
-                // Скрываем демо-блок в реальном Telegram
                 const demoBox = document.getElementById('demoPreviewSwitcherBox');
                 if (demoBox) demoBox.classList.add('hidden');
             }
@@ -771,19 +893,717 @@
         }
 
         // =====================================================================
-        // НАСТРОЙКИ ЛИЧНОГО ПРОФИЛЯ (БЕЗ ДОСТУПА К ДАННЫМ ДРУГА)
+        // 5. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДАТ И БАЛЛОВ (С ЛИМИТОМ 100 БАЛЛОВ ЗА ВЕС)
+        // =====================================================================
+        function formatRussianDate(dateStr) {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            const months = [
+                'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
+                'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
+            ];
+            return `${d} ${months[m - 1]}`;
+        }
+
+        function getWorkoutCount(player) {
+            return Object.keys(player.workouts || {}).length;
+        }
+
+        function getMinFinaleWeight(player) {
+            const logs = player.weightLogs || {};
+            const finaleVals = FINALE_DATES
+                .map(d => parseFloat(logs[d]))
+                .filter(v => !isNaN(v) && v > 0);
+
+            if (finaleVals.length > 0) {
+                return Math.min(...finaleVals);
+            }
+            // Если 27–29 декабря ещё не заполнены, берём минимальный из записанных для личной подсказки
+            const allVals = Object.values(logs).map(v => parseFloat(v)).filter(v => !isNaN(v) && v > 0);
+            if (allVals.length > 0) {
+                return Math.min(...allVals);
+            }
+            return player.startWeight;
+        }
+
+        // Расчёт баллов за вес: СТРОГО НЕ БОЛЕЕ 100 БАЛЛОВ (перевыполнение не учитывается!)
+        function calculateWeightScore(player) {
+            if (typeof player.serverFinaleWeightScore === 'number' && player !== getMe()) {
+                return Math.min(MAX_WEIGHT_SCORE, Math.max(0, player.serverFinaleWeightScore));
+            }
+            const startW = parseFloat(player.startWeight) || 0;
+            const targetW = parseFloat(player.targetWeight) || 0;
+            const goalDelta = startW - targetW;
+            if (goalDelta <= 0) return 0;
+
+            const minFinaleW = getMinFinaleWeight(player);
+            const actualLost = startW - minFinaleW;
+            if (actualLost <= 0) return 0;
+
+            const rawPercent = (actualLost / goalDelta) * 100;
+            // Ограничение сверху: максимум 100 баллов!
+            const cappedScore = Math.min(MAX_WEIGHT_SCORE, Math.max(0, rawPercent));
+            return Math.round(cappedScore * 10) / 10;
+        }
+
+        function showToast(message, isError = false) {
+            const box = document.getElementById('toastBox');
+            const icon = document.getElementById('toastIcon');
+            const text = document.getElementById('toastText');
+
+            text.textContent = message;
+            icon.className = isError
+                ? "fa-solid fa-triangle-exclamation text-rose-400 text-lg"
+                : "fa-solid fa-circle-check text-emerald-400 text-lg";
+
+            box.classList.remove('hidden');
+            clearTimeout(window._toastTimer);
+            window._toastTimer = setTimeout(() => {
+                box.classList.add('hidden');
+            }, 3200);
+        }
+
+        // =====================================================================
+        // 6. ОНБОРДИНГ И ВЫБОР АВАТАРКИ (ВКЛЮЧАЯ 🐵 И 🦎)
+        // =====================================================================
+        function renderAvatarPicker(containerId, selectedEmoji, onSelect) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            container.innerHTML = '';
+            AVATAR_OPTIONS.forEach(emoji => {
+                const isSelected = emoji === selectedEmoji;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.textContent = emoji;
+                btn.className = `h-10 rounded-xl text-lg flex items-center justify-center border transition ${
+                    isSelected
+                        ? 'bg-indigo-600/40 border-indigo-400 scale-105 shadow-md'
+                        : 'bg-slate-900/70 border-slate-700 hover:border-slate-500'
+                }`;
+                btn.onclick = () => onSelect(emoji);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkOnboarding() {
+            const me = getMe();
+            const modal = document.getElementById('onboardingModal');
+
+            const selectRegAvatar = (emoji) => {
+                appState.regSelectedAvatar = emoji;
+                renderAvatarPicker('regAvatarGrid', appState.regSelectedAvatar, selectRegAvatar);
+            };
+            renderAvatarPicker('regAvatarGrid', appState.regSelectedAvatar, selectRegAvatar);
+
+            if (!me.registered) {
+                const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+                if (tgUser && tgUser.first_name) {
+                    document.getElementById('regName').value = tgUser.first_name;
+                }
+                modal.classList.remove('hidden');
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        document.getElementById('registrationForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value.trim();
+            const startW = parseFloat(document.getElementById('regStartWeight').value);
+            const targetW = parseFloat(document.getElementById('regTargetWeight').value);
+            const errEl = document.getElementById('regError');
+
+            if (!name || isNaN(startW) || isNaN(targetW)) {
+                errEl.textContent = "Пожалуйста, заполните все поля.";
+                errEl.classList.remove('hidden');
+                return;
+            }
+            if (targetW >= startW) {
+                errEl.textContent = "Желаемый вес финала должен быть меньше стартового веса на 2 ноября.";
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            errEl.classList.add('hidden');
+            const me = getMe();
+            me.registered = true;
+            me.name = name;
+            me.avatar = appState.regSelectedAvatar;
+            me.startWeight = startW;
+            me.targetWeight = targetW;
+            me.weightLogs[START_DATE_STR] = startW;
+
+            document.getElementById('onboardingModal').classList.add('hidden');
+            await postToPythonServer('/api/register', {
+                name: me.name,
+                avatar: me.avatar,
+                startWeight: me.startWeight,
+                targetWeight: me.targetWeight
+            });
+            refreshAllUI();
+            showToast("Вы зарегистрированы в «НеБешенной НеСушке»! Вес надёжно скрыт 🔒");
+        });
+
+        // =====================================================================
+        // 7. РЕНДЕР ШАПКИ ДУЭЛИ И СТАТУСА НЕДЕЛИ
+        // =====================================================================
+        function renderHeaderDuel() {
+            const me = getMe();
+            const friend = getFriend();
+            const unlocked = isFinaleUnlocked();
+
+            const meWorkouts = getWorkoutCount(me);
+            const friendWorkouts = getWorkoutCount(friend);
+
+            const meWeightPts = calculateWeightScore(me);
+            const friendWeightPts = calculateWeightScore(friend);
+
+            const meDisplayScore = unlocked ? Math.round((meWorkouts + meWeightPts) * 10) / 10 : meWorkouts;
+            const friendDisplayScore = unlocked ? Math.round((friendWorkouts + friendWeightPts) * 10) / 10 : friendWorkouts;
+
+            document.getElementById('meAvatar').textContent = me.avatar || '🔥';
+            document.getElementById('meName').textContent = me.name || 'Вы';
+            document.getElementById('meWorkoutsSub').textContent = `${meWorkouts} / ${MAX_WORKOUT_TARGET} тренировок`;
+            document.getElementById('meVisibleScore').textContent = meDisplayScore;
+
+            document.getElementById('friendAvatar').textContent = friend.avatar || '🐵';
+            document.getElementById('friendName').textContent = friend.name || 'Друг';
+            document.getElementById('friendWorkoutsSub').textContent = `${friendWorkouts} / ${MAX_WORKOUT_TARGET} тренировок`;
+            document.getElementById('friendVisibleScore').textContent = friendDisplayScore;
+
+            const privacyBadge = document.getElementById('duelPrivacyBadge');
+            const meLockTag = document.getElementById('meWeightLockTag');
+            const friendLockTag = document.getElementById('friendWeightLockTag');
+
+            if (unlocked) {
+                privacyBadge.innerHTML = `<i class="fa-solid fa-trophy text-amber-400"></i> Финал 29.12 открыт!`;
+                meLockTag.textContent = `+${meWeightPts} б. за вес`;
+                friendLockTag.textContent = `+${friendWeightPts} б. за вес`;
+            } else {
+                privacyBadge.innerHTML = `<i class="fa-solid fa-eye-slash"></i> Вес скрыт до 29.12`;
+                meLockTag.textContent = `🔒 +вес 29.12`;
+                friendLockTag.textContent = `🔒 скрыто`;
+            }
+
+            // Проверка обязательного минимума недели, к которой относится выбранная дата
+            const activeWeek = CHALLENGE_WEEKS.find(w => appState.selectedDate >= w.start && appState.selectedDate <= w.end) || CHALLENGE_WEEKS[0];
+            const weekWorkouts = getWorkoutsInDateRange(me, activeWeek.start, activeWeek.end);
+
+            const banner = document.getElementById('weeklyMinimumBanner');
+            const icon = document.getElementById('weeklyMinimumIcon');
+            const text = document.getElementById('weeklyMinimumText');
+            const countBadge = document.getElementById('weeklyMinimumCount');
+
+            if (weekWorkouts >= 1) {
+                banner.className = "rounded-2xl px-3.5 py-2.5 text-xs flex items-center justify-between border bg-emerald-950/40 border-emerald-500/30 text-emerald-200";
+                icon.className = "fa-solid fa-circle-check text-emerald-400";
+                text.textContent = `${activeWeek.label}: обязательный минимум выполнен!`;
+                countBadge.className = "font-bold text-[11px] px-2 py-0.5 rounded-lg bg-emerald-500/20 text-emerald-300";
+                countBadge.textContent = `${weekWorkouts} трен.`;
+            } else {
+                banner.className = "rounded-2xl px-3.5 py-2.5 text-xs flex items-center justify-between border bg-amber-950/40 border-amber-500/40 text-amber-200";
+                icon.className = "fa-solid fa-triangle-exclamation text-amber-400";
+                text.textContent = `${activeWeek.label}: нужна минимум 1 тренировка!`;
+                countBadge.className = "font-bold text-[11px] px-2 py-0.5 rounded-lg bg-amber-500/20 text-amber-300";
+                countBadge.textContent = `0 / 1 мин.`;
+            }
+        }
+
+        function getWorkoutsInDateRange(player, startStr, endStr) {
+            return Object.keys(player.workouts || {}).filter(d => d >= startStr && d <= endStr).length;
+        }
+
+        // =====================================================================
+        // 8. КАЛЕНДАРЬ (2 НОЯБРЯ — 29 ДЕКАБРЯ) И РЕДАКТОР ДНЯ
+        // =====================================================================
+        function switchCalendarMonth(monthIdx) {
+            appState.currentMonth = monthIdx;
+            const btnNov = document.getElementById('btnMonthNov');
+            const btnDec = document.getElementById('btnMonthDec');
+
+            if (monthIdx === 10) {
+                btnNov.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition bg-indigo-600 text-white";
+                btnDec.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-800 text-slate-300 hover:text-white";
+                if (!appState.selectedDate.startsWith("2026-11")) {
+                    appState.selectedDate = "2026-11-02";
+                }
+            } else {
+                btnDec.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition bg-indigo-600 text-white";
+                btnNov.className = "px-3 py-1.5 rounded-xl text-xs font-bold transition bg-slate-800 text-slate-300 hover:text-white";
+                if (!appState.selectedDate.startsWith("2026-12")) {
+                    appState.selectedDate = "2026-12-01";
+                }
+            }
+            refreshAllUI();
+        }
+
+        function renderCalendarGrid() {
+            const grid = document.getElementById('calendarGrid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const year = 2026;
+            const month = appState.currentMonth; // 10 (Ноябрь) или 11 (Декабрь)
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            const firstDayDate = new Date(year, month, 1);
+            let startOffset = firstDayDate.getDay() - 1;
+            if (startOffset < 0) startOffset = 6; // Воскресенье -> 6
+
+            for (let i = 0; i < startOffset; i++) {
+                const empty = document.createElement('div');
+                empty.className = "h-12 rounded-xl bg-transparent";
+                grid.appendChild(empty);
+            }
+
+            const me = getMe();
+            const friend = getFriend();
+
+            for (let day = 1; day <= daysInMonth; day++) {
+                const mStr = String(month + 1).padStart(2, '0');
+                const dStr = String(day).padStart(2, '0');
+                const dateStr = `${year}-${mStr}-${dStr}`;
+
+                const isOutOfChallenge = (dateStr < START_DATE_STR || dateStr > END_DATE_STR);
+                const isSelected = (dateStr === appState.selectedDate);
+                const isFinaleDay = FINALE_DATES.includes(dateStr);
+
+                const myWorkout = me.workouts[dateStr];
+                const friendWorkout = friend.workouts[dateStr];
+                const hasMyWeight = me.weightLogs && me.weightLogs[dateStr] !== undefined;
+
+                const cell = document.createElement('button');
+                cell.type = 'button';
+
+                if (isOutOfChallenge) {
+                    cell.disabled = true;
+                    cell.className = "h-12 rounded-2xl border border-slate-900 bg-slate-950/30 text-slate-700 flex flex-col items-center justify-center text-xs opacity-40 cursor-not-allowed";
+                    cell.innerHTML = `<span>${day}</span>`;
+                } else {
+                    let baseCls = "h-12 rounded-2xl border flex flex-col items-center justify-between p-1.5 transition relative ";
+                    if (isSelected) {
+                        baseCls += "bg-indigo-600/30 border-indigo-400 text-white shadow-lg shadow-indigo-500/20 scale-[1.03] ";
+                    } else if (myWorkout) {
+                        baseCls += "bg-slate-900/90 border-indigo-500/40 text-slate-100 hover:border-indigo-400 ";
+                    } else {
+                        baseCls += "bg-slate-900/60 border-slate-800 text-slate-300 hover:border-slate-600 ";
+                    }
+                    if (isFinaleDay) {
+                        baseCls += "finale-day-glow ";
+                    }
+                    cell.className = baseCls;
+
+                    const topBadge = isFinaleDay
+                        ? `<span class="absolute -top-1 -right-1 text-[9px]">⭐</span>`
+                        : (hasMyWeight ? `<span class="absolute top-1 right-1 text-[8px] text-emerald-400">🔒</span>` : '');
+
+                    const myDot = myWorkout
+                        ? `<span class="text-[11px] leading-none" title="Ваша тренировка">${WORKOUT_TYPES[myWorkout.type]?.emoji || '🔥'}</span>`
+                        : `<span class="w-1.5 h-1.5 rounded-full bg-slate-700"></span>`;
+
+                    const friendDot = friendWorkout
+                        ? `<span class="w-2 h-2 rounded-full bg-pink-400 shadow shadow-pink-500" title="Друг тренировался"></span>`
+                        : '';
+
+                    cell.innerHTML = `
+                        ${topBadge}
+                        <span class="text-[11px] font-bold leading-none">${day}</span>
+                        <div class="flex items-center gap-1">${myDot}${friendDot}</div>
+                    `;
+                    cell.onclick = () => {
+                        appState.selectedDate = dateStr;
+                        refreshAllUI();
+                    };
+                }
+                grid.appendChild(cell);
+            }
+        }
+
+        function selectWorkoutType(typeKey) {
+            appState.selectedWorkoutType = typeKey;
+            document.querySelectorAll('.workout-type-btn').forEach(btn => {
+                const isMatch = btn.getAttribute('data-type') === typeKey;
+                btn.className = `workout-type-btn flex items-center gap-2.5 p-2.5 rounded-2xl border text-left transition ${
+                    isMatch
+                        ? 'border-indigo-400 bg-indigo-600/25 shadow-md shadow-indigo-500/10'
+                        : 'border-slate-700 bg-slate-900/70 hover:border-slate-600'
+                }`;
+            });
+        }
+
+        function updateDurationLabel(val) {
+            document.getElementById('durationValueLabel').textContent = `${val} мин`;
+        }
+
+        function setQuickDuration(mins) {
+            const input = document.getElementById('workoutDurationInput');
+            input.value = mins;
+            updateDurationLabel(mins);
+        }
+
+        function renderSelectedDayEditor() {
+            const dateStr = appState.selectedDate;
+            const me = getMe();
+            const friend = getFriend();
+
+            document.getElementById('selectedDateTitle').textContent = formatRussianDate(dateStr);
+
+            // Бейджи дня
+            const badgesBox = document.getElementById('selectedDayBadges');
+            badgesBox.innerHTML = '';
+            if (FINALE_DATES.includes(dateStr)) {
+                badgesBox.innerHTML += `<span class="text-[10px] font-bold px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40">⭐ Финальный замер веса</span>`;
+            }
+
+            // Показываем активность друга в этот день (только факт тренировки и вид, БЕЗ ВЕСА)
+            const friendBox = document.getElementById('friendDayActivityBox');
+            const friendWorkout = friend.workouts[dateStr];
+            if (friendWorkout) {
+                const wInfo = WORKOUT_TYPES[friendWorkout.type] || WORKOUT_TYPES.other;
+                document.getElementById('friendDayEmoji').textContent = wInfo.emoji;
+                document.getElementById('friendDayDetails').textContent = `${wInfo.label} • ${friendWorkout.duration} мин`;
+                friendBox.classList.remove('hidden');
+            } else {
+                friendBox.classList.add('hidden');
+            }
+
+            // Заполняем форму своей тренировки
+            const myWorkout = me.workouts[dateStr];
+            const btnDelete = document.getElementById('btnDeleteWorkout');
+            if (myWorkout) {
+                selectWorkoutType(myWorkout.type);
+                setQuickDuration(myWorkout.duration);
+                btnDelete.classList.remove('hidden');
+            } else {
+                selectWorkoutType(appState.selectedWorkoutType || 'home');
+                btnDelete.classList.add('hidden');
+            }
+
+            // Заполняем приватный вес
+            const weightInput = document.getElementById('dayWeightInput');
+            const finaleHint = document.getElementById('finaleWindowHint');
+            if (FINALE_DATES.includes(dateStr)) {
+                finaleHint.classList.remove('hidden');
+            } else {
+                finaleHint.classList.add('hidden');
+            }
+
+            weightInput.value = (me.weightLogs && me.weightLogs[dateStr] !== undefined) ? me.weightLogs[dateStr] : '';
+
+            // Личная подсказка о прогрессе по весу (видна ТОЛЬКО самому пользователю)
+            const myWeightPts = calculateWeightScore(me);
+            const hintEl = document.getElementById('myPrivateProgressHint');
+            hintEl.innerHTML = `🔒 <b>Видно только вам:</b> старт 2.11: <b>${me.startWeight} кг</b> → цель: <b>${me.targetWeight} кг</b>. Текущий расчёт за вес: <b class="text-emerald-300">${myWeightPts} из 100 баллов</b> (перевыполнение свыше 100 не учитывается).`;
+        }
+
+        async function saveWorkoutForSelectedDay() {
+            const me = getMe();
+            const dateStr = appState.selectedDate;
+            const duration = parseInt(document.getElementById('workoutDurationInput').value, 10) || 45;
+            const typeKey = appState.selectedWorkoutType || 'home';
+
+            me.workouts[dateStr] = {
+                type: typeKey,
+                duration: duration
+            };
+
+            await postToPythonServer('/api/workout', {
+                date: dateStr,
+                type: typeKey,
+                duration: duration,
+                action: 'save'
+            });
+
+            refreshAllUI();
+            openMotivationModal(dateStr, typeKey, duration);
+        }
+
+        async function removeWorkoutForSelectedDay() {
+            const me = getMe();
+            const dateStr = appState.selectedDate;
+            if (me.workouts[dateStr]) {
+                delete me.workouts[dateStr];
+                await postToPythonServer('/api/workout', {
+                    date: dateStr,
+                    action: 'delete'
+                });
+                refreshAllUI();
+                showToast("Тренировка удалена из календаря", true);
+            }
+        }
+
+        async function saveWeightForSelectedDay() {
+            const me = getMe();
+            const dateStr = appState.selectedDate;
+            const val = parseFloat(document.getElementById('dayWeightInput').value);
+
+            if (isNaN(val) || val < 35 || val > 250) {
+                showToast("Введите корректный вес в кг (от 35 до 250)", true);
+                return;
+            }
+
+            me.weightLogs[dateStr] = val;
+            await postToPythonServer('/api/weight', {
+                date: dateStr,
+                weight: val
+            });
+            refreshAllUI();
+            showToast(`Вес на ${formatRussianDate(dateStr)} сохранён приватно 🔒`);
+        }
+
+        // =====================================================================
+        // 9. МОТИВАЦИОННОЕ ОКНО ПОСЛЕ ТРЕНИРОВКИ
+        // =====================================================================
+        function openMotivationModal(dateStr, typeKey, duration) {
+            const me = getMe();
+            const wInfo = WORKOUT_TYPES[typeKey] || WORKOUT_TYPES.other;
+            const totalWorkouts = getWorkoutCount(me);
+            const quote = MOTIVATION_QUOTES[Math.floor(Math.random() * MOTIVATION_QUOTES.length)];
+
+            document.getElementById('motivationEmoji').textContent = wInfo.emoji;
+            document.getElementById('motivationWorkoutSummary').textContent = `${formatRussianDate(dateStr)} • ${wInfo.label} • ${duration} мин`;
+            document.getElementById('motivationQuoteText').textContent = `«${quote}»`;
+            document.getElementById('motivationProgressText').innerHTML =
+                `Ваш прогресс тренировок: <b class="text-white">${totalWorkouts} из ${MAX_WORKOUT_TARGET}</b> (+${totalWorkouts} б. к цели 128)`;
+
+            document.getElementById('motivationModal').classList.remove('hidden');
+        }
+
+        function closeMotivationModal() {
+            document.getElementById('motivationModal').classList.add('hidden');
+        }
+
+        // =====================================================================
+        // 10. ВКЛАДКА 2: КОНТРОЛЬ 8 НЕДЕЛЬ (ОБЯЗАТЕЛЬНЫЙ МИНИМУМ)
+        // =====================================================================
+        function renderWeeksTab() {
+            const me = getMe();
+            const friend = getFriend();
+            const container = document.getElementById('weeksListContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let completedWeeks = 0;
+
+            CHALLENGE_WEEKS.forEach(w => {
+                const myCount = getWorkoutsInDateRange(me, w.start, w.end);
+                const friendCount = getWorkoutsInDateRange(friend, w.start, w.end);
+                const isDone = myCount >= 1;
+                if (isDone) completedWeeks++;
+
+                const card = document.createElement('div');
+                card.className = `rounded-2xl p-3.5 border flex items-center justify-between transition ${
+                    isDone
+                        ? 'bg-slate-900/80 border-emerald-500/35'
+                        : 'bg-slate-900/50 border-slate-800'
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs ${
+                            isDone ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400'
+                        }">
+                            ${isDone ? '<i class="fa-solid fa-check"></i>' : `W${w.num}`}
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-extrabold text-white">${w.label}</span>
+                                <span class="text-[10px] text-slate-400">${w.rangeText}</span>
+                            </div>
+                            <div class="text-[11px] mt-0.5 ${isDone ? 'text-emerald-300' : 'text-amber-300'}">
+                                ${isDone ? `Минимум выполнен (${myCount} трен.)` : 'Нужна минимум 1 тренировка!'}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right text-[11px]">
+                        <div class="font-bold text-indigo-300">Вы: ${myCount}</div>
+                        <div class="font-bold text-pink-300">Друг: ${friendCount}</div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            document.getElementById('weeksCompletedBadge').textContent = `${completedWeeks} / 8 нед.`;
+        }
+
+        // =====================================================================
+        // 11. ВКЛАДКА 3: ТАЙМЕР 29 ДЕКАБРЯ И ФИНАЛЬНОЕ SUMMARY
+        // =====================================================================
+        function updateFinaleCountdownTimer() {
+            const now = Date.now();
+            const diff = FINALE_UNLOCK_TIMESTAMP - now;
+
+            const daysEl = document.getElementById('cdDays');
+            const hoursEl = document.getElementById('cdHours');
+            const minsEl = document.getElementById('cdMinutes');
+            const secsEl = document.getElementById('cdSeconds');
+            const badge = document.getElementById('finaleStatusBadge');
+            const subtitle = document.getElementById('finaleTimerSubtitle');
+            const lockIcon = document.getElementById('finaleLockIcon');
+
+            if (!daysEl) return;
+
+            if (diff <= 0) {
+                daysEl.textContent = "00";
+                hoursEl.textContent = "00";
+                minsEl.textContent = "00";
+                secsEl.textContent = "00";
+                badge.textContent = "🔓 Открыто!";
+                badge.className = "text-[10px] font-bold uppercase px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0";
+                subtitle.textContent = "29 декабря наступило! Процентная дельта веса и итоги 128 баллов раскрыты.";
+                lockIcon.className = "fa-solid fa-unlock-keyhole text-emerald-400 text-lg";
+                return;
+            }
+
+            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const m = Math.floor((diff / (1000 * 60)) % 60);
+            const s = Math.floor((diff / 1000) % 60);
+
+            daysEl.textContent = String(d).padStart(2, '0');
+            hoursEl.textContent = String(h).padStart(2, '0');
+            minsEl.textContent = String(m).padStart(2, '0');
+            secsEl.textContent = String(s).padStart(2, '0');
+        }
+
+        function renderSummaryTab() {
+            updateFinaleCountdownTimer();
+            const me = getMe();
+            const friend = getFriend();
+            const unlocked = isFinaleUnlocked();
+
+            const meWorkouts = getWorkoutCount(me);
+            const friendWorkouts = getWorkoutCount(friend);
+
+            const meWeightPts = calculateWeightScore(me);
+            const friendWeightPts = calculateWeightScore(friend);
+
+            const meTotal = unlocked ? Math.round((meWorkouts + meWeightPts) * 10) / 10 : meWorkouts;
+            const friendTotal = unlocked ? Math.round((friendWorkouts + friendWeightPts) * 10) / 10 : friendWorkouts;
+
+            const meDiff128 = Math.round(Math.abs(IDEAL_TOTAL_SCORE - meTotal) * 10) / 10;
+            const friendDiff128 = Math.round(Math.abs(IDEAL_TOTAL_SCORE - friendTotal) * 10) / 10;
+
+            const winnerEl = document.getElementById('summaryWinnerText');
+            if (!unlocked) {
+                winnerEl.innerHTML = `До <b>29 декабря</b> отображаются только баллы за тренировки. В финале прибавятся баллы за вес (макс. 100) и определится самый близкий к <b>128 баллам</b>!`;
+            } else {
+                if (meDiff128 < friendDiff128) {
+                    winnerEl.innerHTML = `🏆 Победитель «НеБешенной НеСушки»: <b class="text-amber-300">${me.name}</b> (отклонение от 128 всего ${meDiff128} б.)!`;
+                } else if (friendDiff128 < meDiff128) {
+                    winnerEl.innerHTML = `🏆 Победитель «НеБешенной НеСушки»: <b class="text-amber-300">${friend.name}</b> (отклонение от 128 всего ${friendDiff128} б.)!`;
+                } else {
+                    winnerEl.innerHTML = `🤝 Боевая ничья! Оба участника одинаково близки к 128 баллам!`;
+                }
+            }
+
+            // Карточки сравнения игроков
+            const compBox = document.getElementById('summaryPlayersComparison');
+            compBox.innerHTML = `
+                <div class="bg-slate-900/85 rounded-2xl p-3.5 border border-indigo-500/40 space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">${me.avatar}</span>
+                        <div class="text-xs font-extrabold text-white truncate">${me.name} (Вы)</div>
+                    </div>
+                    <div class="text-2xl font-black text-indigo-300">${meTotal} <span class="text-[10px] font-semibold text-slate-400">/ 128</span></div>
+                    <div class="text-[10px] text-slate-400 space-y-0.5">
+                        <div>🏋️‍♀️ Тренировки: <b class="text-slate-200">+${meWorkouts} б.</b></div>
+                        <div>⚖️ Вес (макс 100): <b class="text-emerald-300">${unlocked ? `+${meWeightPts} б.` : '🔒 до 29.12'}</b></div>
+                    </div>
+                </div>
+
+                <div class="bg-slate-900/85 rounded-2xl p-3.5 border border-pink-500/40 space-y-2">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">${friend.avatar}</span>
+                        <div class="text-xs font-extrabold text-white truncate">${friend.name} (Друг)</div>
+                    </div>
+                    <div class="text-2xl font-black text-pink-300">${friendTotal} <span class="text-[10px] font-semibold text-slate-400">/ 128</span></div>
+                    <div class="text-[10px] text-slate-400 space-y-0.5">
+                        <div>🏋️‍♀️ Тренировки: <b class="text-slate-200">+${friendWorkouts} б.</b></div>
+                        <div>⚖️ Вес (макс 100): <b class="text-pink-300">${unlocked ? `+${friendWeightPts} б.` : '🔒 до 29.12'}</b></div>
+                    </div>
+                </div>
+            `;
+
+            // Подробная статистика тренировок пользователя
+            const workoutsArr = Object.values(me.workouts || {});
+            const totalCount = workoutsArr.length;
+            const totalMinutes = workoutsArr.reduce((acc, w) => acc + (parseInt(w.duration, 10) || 0), 0);
+            const totalHours = Math.round((totalMinutes / 60) * 10) / 10;
+            const avgMins = totalCount > 0 ? Math.round(totalMinutes / totalCount) : 0;
+
+            document.getElementById('summaryTotalDuration').textContent = `${totalMinutes} мин`;
+            document.getElementById('statTotalWorkouts').textContent = `${totalCount} / 28`;
+            document.getElementById('statTotalHours').textContent = `${totalHours} ч`;
+            document.getElementById('statAvgMinutes').textContent = `${avgMins} мин`;
+
+            const breakdownBox = document.getElementById('statTypesBreakdown');
+            breakdownBox.innerHTML = '';
+
+            Object.keys(WORKOUT_TYPES).forEach(typeKey => {
+                const info = WORKOUT_TYPES[typeKey];
+                const filtered = workoutsArr.filter(w => w.type === typeKey);
+                const count = filtered.length;
+                const mins = filtered.reduce((acc, w) => acc + (parseInt(w.duration, 10) || 0), 0);
+                const pct = totalCount > 0 ? Math.round((count / totalCount) * 100) : 0;
+
+                breakdownBox.innerHTML += `
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-[11px]">
+                            <span class="font-semibold text-slate-200">${info.emoji} ${info.label}</span>
+                            <span class="text-slate-400"><b>${count}</b> трен. (${mins} мин • ${pct}%)</span>
+                        </div>
+                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
+                            <div class="${info.color} h-full rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function copySummaryText() {
+            const me = getMe();
+            const friend = getFriend();
+            const unlocked = isFinaleUnlocked();
+            const workoutsArr = Object.values(me.workouts || {});
+            const totalCount = workoutsArr.length;
+            const totalMinutes = workoutsArr.reduce((acc, w) => acc + (parseInt(w.duration, 10) || 0), 0);
+            const meWeightPts = calculateWeightScore(me);
+
+            const scoreLine = unlocked
+                ? `🏆 Итоговый счёт: ${totalCount + meWeightPts} / 128 баллов (${totalCount} трен. + ${meWeightPts} вес)`
+                : `🔥 Текущий счёт тренировок: ${totalCount} / 28 баллов (+вес откроется 29 декабря 🔒)`;
+
+            const shareText = [
+                `🔥 Челлендж «НеБешенная НеСушка» (2 ноября — 29 декабря)`,
+                `${me.avatar} Участник: ${me.name} vs ${friend.avatar} ${friend.name}`,
+                scoreLine,
+                `⏱ Всего времени на тренировках: ${totalMinutes} мин (${Math.round((totalMinutes / 60) * 10) / 10} ч)`,
+                `🎯 Движемся к заветным 128 баллам!`
+            ].join('\n');
+
+            navigator.clipboard.writeText(shareText).then(() => {
+                showToast("Summary скопировано в буфер обмена! Отправьте другу в Telegram 🚀");
+            }).catch(() => {
+                showToast("Не удалось скопировать автоматически", true);
+            });
+        }
+
+        // =====================================================================
+        // 12. НАСТРОЙКИ ЛИЧНОГО ПРОФИЛЯ (БЕЗ ДОСТУПА К ДАННЫМ ДРУГА)
         // =====================================================================
         function openSettingsModal() {
             const me = getMe();
             document.getElementById('settingsNameInput').value = me.name;
             document.getElementById('settingsStartWeight').value = me.startWeight;
             document.getElementById('settingsTargetWeight').value = me.targetWeight;
+            document.getElementById('settingsApiUrlInput').value = appState.apiBaseUrl || "";
             appState.settingsSelectedAvatar = me.avatar;
 
-            renderAvatarPicker('settingsAvatarGrid', appState.settingsSelectedAvatar, (emoji) => {
+            const selectSettingsAvatar = (emoji) => {
                 appState.settingsSelectedAvatar = emoji;
-                renderAvatarPicker('settingsAvatarGrid', appState.settingsSelectedAvatar, arguments.callee);
-            });
+                renderAvatarPicker('settingsAvatarGrid', appState.settingsSelectedAvatar, selectSettingsAvatar);
+            };
+            renderAvatarPicker('settingsAvatarGrid', appState.settingsSelectedAvatar, selectSettingsAvatar);
 
             document.getElementById('settingsModal').classList.remove('hidden');
         }
@@ -804,15 +1624,17 @@
                 friend.workouts[dateStr] = { type: randomType, duration: 50 };
                 showToast(`Тест: друг отметил тренировку на ${formatRussianDate(dateStr)} (+1 балл)!`);
             }
+            saveStateToLocal();
             closeSettingsModal();
             refreshAllUI();
         }
 
-        function saveProfileSettings() {
+        async function saveProfileSettings() {
             const me = getMe();
             const newName = document.getElementById('settingsNameInput').value.trim();
             const startW = parseFloat(document.getElementById('settingsStartWeight').value);
             const targetW = parseFloat(document.getElementById('settingsTargetWeight').value);
+            const customApiUrl = document.getElementById('settingsApiUrlInput').value.trim();
 
             if (!newName || isNaN(startW) || isNaN(targetW) || startW <= targetW) {
                 showToast("Проверьте имя и корректность стартового/целевого веса", true);
@@ -824,14 +1646,22 @@
             me.startWeight = startW;
             me.targetWeight = targetW;
             me.registered = true;
+            appState.apiBaseUrl = customApiUrl;
+
+            await postToPythonServer('/api/register', {
+                name: me.name,
+                avatar: me.avatar,
+                startWeight: me.startWeight,
+                targetWeight: me.targetWeight
+            });
 
             closeSettingsModal();
             refreshAllUI();
-            showToast("Профиль обновлён!");
+            showToast("Личный профиль сохранён!");
         }
 
         // =====================================================================
-        // ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК И ИНИЦИАЛИЗАЦИЯ
+        // 13. ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК И ЗАПУСК
         // =====================================================================
         function switchTab(tabName) {
             document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
@@ -858,13 +1688,14 @@
             renderSummaryTab();
         }
 
-        window.onload = function () {
+        window.onload = async function () {
+            loadStateFromLocal();
             if (!verifyWhitelistAccess()) {
                 return;
             }
+            await syncFromPythonServer();
             checkOnboarding();
             refreshAllUI();
-            // Обновляем таймер обратного отсчёта до 29 декабря каждую секунду
             setInterval(updateFinaleCountdownTimer, 1000);
         };
     </script>
