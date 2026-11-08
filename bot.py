@@ -99,9 +99,16 @@ def init_db():
             workout_date TEXT,
             workout_type TEXT,
             duration INTEGER,
+            comment TEXT DEFAULT '',
             PRIMARY KEY (user_id, workout_date)
         )
     """)
+    # Авто-миграция для уже созданных таблиц: добавляем колонку comment, если её ещё нет
+    try:
+        cur.execute("ALTER TABLE workouts ADD COLUMN comment TEXT DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
+
     cur.execute("""
         CREATE TABLE IF NOT EXISTS weight_logs (
             user_id INTEGER,
@@ -125,13 +132,13 @@ def db_upsert_participant(user_id: int, name: str, avatar: str, start_weight: fl
             avatar = excluded.avatar,
             start_weight = excluded.start_weight,
             target_weight = excluded.target_weight,
-            registered = 1,
-            updated_at = excluded.updated_at
-    """, (user_id, name, avatar, start_weight, target_weight, datetime.now().isoformat()))
+def db_save_workout(user_id: int, date_str: str, w_type: str, duration: int, comment: str = ""):
+    conn = sqlite3.connect(DB_PATH)
+    cur = conn.cursor()
     cur.execute("""
-        INSERT OR REPLACE INTO weight_logs (user_id, log_date, weight)
-        VALUES (?, '2026-11-02', ?)
-    """, (user_id, start_weight))
+        INSERT OR REPLACE INTO workouts (user_id, workout_date, workout_type, duration, comment)
+        VALUES (?, ?, ?, ?, ?)
+    """, (user_id, date_str, w_type, duration, comment))
     conn.commit()
     conn.close()
 
@@ -201,9 +208,15 @@ def db_restore_backup_from_client(user_id: int, backup_data: Dict[str, Any]):
         for date_str, w_info in workouts.items():
             if isinstance(w_info, dict):
                 cur.execute("""
-                    INSERT OR REPLACE INTO workouts (user_id, workout_date, workout_type, duration)
-                    VALUES (?, ?, ?, ?)
-                """, (user_id, str(date_str), str(w_info.get("type", "home")), int(w_info.get("duration", 45))))
+                    INSERT OR REPLACE INTO workouts (user_id, workout_date, workout_type, duration, comment)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    user_id,
+                    str(date_str),
+                    str(w_info.get("type", "home")),
+                    int(w_info.get("duration", 45)),
+                    str(w_info.get("comment", ""))
+                ))
 
     weight_logs = backup_data.get("weightLogs", {})
     if isinstance(weight_logs, dict):
@@ -229,8 +242,8 @@ def db_get_player_raw(user_id: int) -> Dict[str, Any]:
     """, (user_id,))
     row = cur.fetchone()
 
-    cur.execute("SELECT workout_date, workout_type, duration FROM workouts WHERE user_id = ?", (user_id,))
-    workouts = {r[0]: {"type": r[1], "duration": r[2]} for r in cur.fetchall()}
+    cur.execute("SELECT workout_date, workout_type, duration, COALESCE(comment, '') FROM workouts WHERE user_id = ?", (user_id,))
+    workouts = {r[0]: {"type": r[1], "duration": r[2], "comment": r[3]} for r in cur.fetchall()}
 
     cur.execute("SELECT log_date, weight FROM weight_logs WHERE user_id = ?", (user_id,))
     weight_logs = {r[0]: r[1] for r in cur.fetchall()}
@@ -390,15 +403,18 @@ async def handle_api_workout(request: web.Request):
     else:
         w_type = str(data.get("type", "home"))
         duration = int(data.get("duration", 45))
-        db_save_workout(user_id, date_str, w_type, duration)
+        comment = str(data.get("comment", "")).strip()
+        db_save_workout(user_id, date_str, w_type, duration, comment)
 
         quote = random.choice(MOTIVATION_MESSAGES)
         type_label = WORKOUT_TYPE_LABELS.get(w_type, "Тренировка")
+        comment_line = f"📝 Что делал(а): <i>{comment}</i>\n" if comment else ""
         try:
             await bot.send_message(
                 user_id,
                 f"✅ <b>Тренировка сохранена (+1 балл к 128)!</b>\n"
-                f"📅 Дата: <b>{date_str}</b> | {type_label} ({duration} мин)\n\n"
+                f"📅 Дата: <b>{date_str}</b> | {type_label} ({duration} мин)\n"
+                f"{comment_line}\n"
                 f"{quote}",
                 parse_mode="HTML",
                 reply_markup=get_main_keyboard()
