@@ -132,6 +132,13 @@ def db_upsert_participant(user_id: int, name: str, avatar: str, start_weight: fl
             avatar = excluded.avatar,
             start_weight = excluded.start_weight,
             target_weight = excluded.target_weight,
+            registered = 1,
+            updated_at = excluded.updated_at
+    """, (user_id, name, avatar, start_weight, target_weight, datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+
+
 def db_save_workout(user_id: int, date_str: str, w_type: str, duration: int, comment: str = ""):
     conn = sqlite3.connect(DB_PATH)
     cur = conn.cursor()
@@ -139,17 +146,6 @@ def db_save_workout(user_id: int, date_str: str, w_type: str, duration: int, com
         INSERT OR REPLACE INTO workouts (user_id, workout_date, workout_type, duration, comment)
         VALUES (?, ?, ?, ?, ?)
     """, (user_id, date_str, w_type, duration, comment))
-    conn.commit()
-    conn.close()
-
-
-def db_save_workout(user_id: int, date_str: str, w_type: str, duration: int):
-    conn = sqlite3.connect(DB_PATH)
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT OR REPLACE INTO workouts (user_id, workout_date, workout_type, duration)
-        VALUES (?, ?, ?, ?)
-    """, (user_id, date_str, w_type, duration))
     conn.commit()
     conn.close()
 
