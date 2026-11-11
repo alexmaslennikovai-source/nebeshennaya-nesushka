@@ -1,1888 +1,993 @@
 <!DOCTYPE html>
 <html lang="ru" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>НеБешенная НеСушка — Telegram Mini App</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <style>
-        * {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        body {
-            background-color: #09090b;
-            color: #f4f4f5;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-        .glass-card {
-            background: #121215;
-            border: 1px solid #27272a;
-        }
-        .finale-day-glow {
-            border-color: rgba(245, 158, 11, 0.55) !important;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-            height: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(148, 163, 184, 0.3);
-            border-radius: 9999px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>НеБешенная НеСушка — 128</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #09090b;
+      color: #f4f4f5;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .card {
+      background-color: #121215;
+      border: 1px solid #27272a;
+      border-radius: 1rem;
+    }
+    .card-subtle {
+      background-color: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 0.75rem;
+    }
+    input, textarea {
+      user-select: text;
+    }
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #3f3f46;
+      border-radius: 4px;
+    }
+  </style>
 </head>
-<body class="pb-24 select-none">
+<body class="min-h-screen pb-24">
 
-    <!-- ЭКРАН БЛОКИРОВКИ ВАЙТЛИСТА (ДЛЯ ПОСТОРОННИХ ПОЛЬЗОВАТЕЛЕЙ) -->
-    <div id="whitelistLockModal" class="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur-xl flex items-center justify-center p-4 hidden">
-        <div class="glass-card rounded-3xl p-6 max-w-sm w-full border border-rose-500/40 shadow-2xl text-center space-y-4">
-            <div class="w-16 h-16 rounded-2xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center mx-auto text-rose-400 text-3xl">
-                <i class="fa-solid fa-user-lock"></i>
-            </div>
-            <div class="space-y-1.5">
-                <span class="text-[10px] font-extrabold uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                    Приватный доступ
-                </span>
-                <h2 class="text-xl font-black text-white">Доступ закрыт</h2>
-                <p class="text-xs text-slate-300 leading-relaxed">
-                    Челлендж <b>«НеБешенная НеСушка»</b> доступен только для двух друзей, чьи Telegram ID добавлены в вайтлист в коде бота.
-                </p>
-            </div>
-            <div class="rounded-2xl bg-slate-900/90 border border-slate-800 p-3 text-xs space-y-1">
-                <div class="text-slate-400 text-[11px]">Ваш Telegram ID:</div>
-                <div id="blockedUserIdDisplay" class="font-mono font-bold text-amber-300 text-sm select-all">Неизвестен</div>
-                <div class="text-[10px] text-slate-500 pt-1">Добавьте этот ID в массив <code>ALLOWED_USER_IDS</code> в <code>bot.py</code> и <code>index.html</code></div>
-            </div>
-            <button id="closeWhitelistDemoBtn" onclick="closeWhitelistDemo()" class="hidden w-full py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200 transition">
-                Вернуться из предпросмотра блокировки
-            </button>
+  <!-- ЭКРАН БЛОКИРОВКИ ВАЙТЛИСТА -->
+  <div id="whitelist-blocked-overlay" class="fixed inset-0 z-50 bg-zinc-950/95 backdrop-blur-md flex items-center justify-center p-5 hidden">
+    <div class="card p-6 max-w-sm w-full text-center space-y-4 border-rose-900/50">
+      <div class="w-14 h-14 rounded-2xl bg-rose-950/60 border border-rose-800/50 flex items-center justify-center mx-auto text-2xl">
+        🔒
+      </div>
+      <div class="inline-block text-[10px] font-bold tracking-wider uppercase px-2.5 py-1 rounded-full bg-rose-950/80 text-rose-300 border border-rose-800/40">
+        Приватный доступ
+      </div>
+      <h2 class="text-xl font-bold text-white">Доступ закрыт</h2>
+      <p class="text-xs text-zinc-400 leading-relaxed">
+        Челлендж «НеБешенная НеСушка» доступен только для двух участников, чьи Telegram ID добавлены в вайтлист.
+      </p>
+      <div class="card-subtle p-3">
+        <div class="text-[11px] text-zinc-400">Ваш Telegram ID:</div>
+        <div id="whitelist-user-id" class="text-base font-mono font-bold text-amber-400 mt-0.5">—</div>
+      </div>
+      <button id="whitelist-back-btn" onclick="closeWhitelistPreview()" class="w-full py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-zinc-200 transition">
+        Закрыть предпросмотр
+      </button>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО РЕГИСТРАЦИИ -->
+  <div id="registration-modal" class="fixed inset-0 z-40 bg-zinc-950/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="card p-5 max-w-md w-full space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-white">Старт челленджа</h2>
+          <p class="text-xs text-zinc-400">2 ноября — 29 декабря 2026 • Цель: 128 баллов</p>
         </div>
+        <span class="text-2xl">🔥</span>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="block text-xs font-medium text-zinc-300 mb-1">Ваше имя</label>
+          <input id="reg-name" type="text" placeholder="Например, Александр" class="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-white focus:outline-none focus:border-emerald-500" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-zinc-300 mb-1.5">Выберите аватарку</label>
+          <div id="reg-avatar-grid" class="grid grid-cols-6 gap-2"></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <div>
+            <label class="block text-xs font-medium text-zinc-300 mb-1">Стартовый вес (кг)</label>
+            <input id="reg-start-weight" type="number" step="0.1" placeholder="85.0" class="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-zinc-300 mb-1">Целевой вес 29.12 (кг)</label>
+            <input id="reg-goal-weight" type="number" step="0.1" placeholder="78.0" class="w-full px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-white focus:outline-none focus:border-emerald-500" />
+          </div>
+        </div>
+
+        <div class="card-subtle p-3 text-[11px] text-zinc-400 leading-relaxed">
+          🔒 <b>Приватность веса:</b> Ваши килограммы хранятся только в вашем личном облаке Telegram. Друг видит только ваши тренировки (+1 балл), а баллы за вес (макс. 100) откроются 29 декабря.
+        </div>
+      </div>
+
+      <button onclick="saveRegistration()" class="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-sm font-bold text-white transition">
+        Сохранить и начать челлендж
+      </button>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО ПОЗДРАВЛЕНИЯ ПОСЛЕ ТРЕНИРОВКИ -->
+  <div id="motivation-modal" class="fixed inset-0 z-40 bg-zinc-950/85 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="card p-6 max-w-sm w-full text-center space-y-4">
+      <div id="motivation-emoji" class="text-4xl">💪</div>
+      <h3 class="text-lg font-bold text-white">Тренировка записана! (+1 балл)</h3>
+      <p id="motivation-text" class="text-xs text-zinc-300 leading-relaxed"></p>
+      <div class="pt-1 space-y-2">
+        <button onclick="sendSyncToBot()" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition">
+          📤 Отправить в бот (обновить у друга)
+        </button>
+        <button onclick="closeMotivationModal()" class="w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-medium text-zinc-300 transition">
+          Продолжить в приложении
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ШАПКА ПРИЛОЖЕНИЯ -->
+  <header class="sticky top-0 z-20 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3">
+    <div class="max-w-md mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-lg">
+          🔥
+        </div>
+        <div>
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-sm font-bold text-white tracking-tight">НеБешенная НеСушка</h1>
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-300">128</span>
+          </div>
+          <div class="flex items-center gap-2 mt-0.5">
+            <span class="text-[11px] text-zinc-400">2 ноя — 29 дек</span>
+            <span id="sync-status-badge" onclick="sendSyncToBot()" class="text-[10px] px-2 py-0.5 rounded-full bg-indigo-950/80 border border-indigo-800/50 text-indigo-300 cursor-pointer">
+              ☁️ Telegram Cloud
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="openEditProfileModal()" title="Настройки профиля" class="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-400 hover:text-white transition">
+        ⚙️
+      </button>
+    </div>
+  </header>
+
+  <!-- ОСНОВНОЙ КОНТЕНТ -->
+  <main class="max-w-md mx-auto px-4 pt-4 space-y-4">
+
+    <!-- ТАБЛО ДВУХ УЧАСТНИКОВ -->
+    <section class="card p-4 space-y-3">
+      <div class="flex items-center justify-between text-xs">
+        <span class="text-zinc-400 font-medium">Цель: <b class="text-white">128 баллов</b></span>
+        <span id="finale-lock-pill" class="text-[11px] text-emerald-400 font-medium flex items-center gap-1">
+          🔒 Вес скрыт до 29.12
+        </span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <!-- Игрок 1 -->
+        <div id="p1-score-card" class="card-subtle p-3 space-y-2">
+          <div class="flex items-center gap-2">
+            <span id="p1-avatar" class="text-2xl">🦎</span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1">
+                <span id="p1-name" class="text-xs font-bold text-white truncate">Участник 1</span>
+                <span id="p1-you-badge" class="hidden text-[9px] px-1.5 py-0.2 rounded bg-zinc-700 text-zinc-200 font-semibold">ВЫ</span>
+              </div>
+              <div id="p1-workouts-sub" class="text-[10px] text-zinc-400">0 / 28 тренировок</div>
+            </div>
+          </div>
+          <div class="flex items-baseline justify-between pt-1">
+            <div>
+              <span id="p1-total-pts" class="text-xl font-extrabold text-white">0</span>
+              <span class="text-[11px] text-zinc-400">б.</span>
+            </div>
+            <span id="p1-weight-pill" class="text-[10px] px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400">
+              🔒 +вес 29.12
+            </span>
+          </div>
+        </div>
+
+        <!-- Игрок 2 -->
+        <div id="p2-score-card" class="card-subtle p-3 space-y-2">
+          <div class="flex items-center gap-2">
+            <span id="p2-avatar" class="text-2xl">🐵</span>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-1">
+                <span id="p2-name" class="text-xs font-bold text-white truncate">Друг</span>
+                <span id="p2-you-badge" class="hidden text-[9px] px-1.5 py-0.2 rounded bg-zinc-700 text-zinc-200 font-semibold">ВЫ</span>
+              </div>
+              <div id="p2-workouts-sub" class="text-[10px] text-zinc-400">0 / 28 тренировок</div>
+            </div>
+          </div>
+          <div class="flex items-baseline justify-between pt-1">
+            <div>
+              <span id="p2-total-pts" class="text-xl font-extrabold text-white">0</span>
+              <span class="text-[11px] text-zinc-400">б.</span>
+            </div>
+            <span id="p2-weight-pill" class="text-[10px] px-2 py-0.5 rounded-md bg-zinc-900 border border-zinc-800 text-zinc-400">
+              🔒 скрыто
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Кнопка отправки обновлений другу через локального бота -->
+      <button onclick="sendSyncToBot()" class="w-full py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-[11px] font-semibold text-emerald-400 flex items-center justify-center gap-1.5 transition">
+        <span>📤</span>
+        <span>Отправить мой прогресс в бот (обновить у друга)</span>
+      </button>
+    </section>
+
+    <!-- НАВИГАЦИЯ ПО ВКЛАДКАМ -->
+    <div class="grid grid-cols-3 gap-1.5 p-1 bg-zinc-900 border border-zinc-800 rounded-xl text-xs font-semibold">
+      <button id="tab-btn-calendar" onclick="switchTab('calendar')" class="py-2 rounded-lg bg-zinc-800 text-white transition">
+        📅 Календарь
+      </button>
+      <button id="tab-btn-weight" onclick="switchTab('weight')" class="py-2 rounded-lg text-zinc-400 hover:text-white transition">
+        ⚖️ Мой вес
+      </button>
+      <button id="tab-btn-summary" onclick="switchTab('summary')" class="py-2 rounded-lg text-zinc-400 hover:text-white transition">
+        📊 Сводка
+      </button>
     </div>
 
-    <!-- МОДАЛЬНОЕ ОКНО МОТИВАЦИИ ПОСЛЕ ТРЕНИРОВКИ -->
-    <div id="motivationModal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden">
-        <div class="glass-card rounded-3xl p-6 max-w-sm w-full border border-indigo-500/40 shadow-2xl text-center space-y-4 relative overflow-hidden">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center mx-auto shadow-lg shadow-indigo-500/30 text-3xl">
-                <span id="motivationEmoji">🔥</span>
-            </div>
-
-            <div class="space-y-1">
-                <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-black">
-                    <i class="fa-solid fa-bolt"></i> +1 балл в копилку 128!
-                </div>
-                <h3 id="motivationTitle" class="text-lg font-black text-white pt-1">Тренировка засчитана!</h3>
-                <p id="motivationWorkoutSummary" class="text-xs font-semibold text-indigo-300"></p>
-            </div>
-
-            <div class="rounded-2xl bg-slate-900/90 border border-indigo-500/30 p-4 text-left space-y-1.5">
-                <div class="text-[10px] font-extrabold uppercase tracking-wider text-pink-400 flex items-center gap-1.5">
-                    <i class="fa-solid fa-quote-left"></i> Заряд мотивации «НеБешенная НеСушка»
-                </div>
-                <p id="motivationQuoteText" class="text-xs text-slate-100 font-medium leading-relaxed italic"></p>
-            </div>
-
-            <div id="motivationProgressText" class="text-[11px] text-slate-400 font-medium"></div>
-
-            <button type="button" onclick="closeMotivationModal()"
-                class="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 text-xs font-bold text-white shadow-lg shadow-indigo-500/25 transition active:scale-[0.99]">
-                💪 Супер, идём к победе!
-            </button>
-        </div>
-    </div>
-
-    <!-- УВЕДОМЛЕНИЯ (TOAST) -->
-    <div id="toastBox" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 hidden transition-all duration-300 max-w-sm w-[92%]">
-        <div class="glass-card rounded-2xl px-4 py-3 shadow-2xl border border-emerald-500/40 flex items-center gap-3">
-            <i id="toastIcon" class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
-            <p id="toastText" class="text-xs font-semibold text-slate-100 leading-snug"></p>
-        </div>
-    </div>
-
-    <!-- МОДАЛЬНОЕ ОКНО РЕГИСТРАЦИИ (СТАРТ 2 НОЯБРЯ) -->
-    <div id="onboardingModal" class="fixed inset-0 z-40 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-4 hidden overflow-y-auto">
-        <div class="glass-card rounded-3xl p-6 max-w-md w-full border border-indigo-500/30 shadow-2xl space-y-5 my-auto">
-            <div class="text-center space-y-2">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/15 border border-pink-500/30 text-pink-300 text-xs font-bold">
-                    <i class="fa-solid fa-fire-flame-curved"></i> 2 Ноября — 29 Декабря
-                </div>
-                <h1 class="text-2xl font-black tracking-tight bg-gradient-to-r from-white via-indigo-200 to-pink-300 bg-clip-text text-transparent">
-                    НеБешенная НеСушка
-                </h1>
-                <p class="text-xs text-slate-300 leading-relaxed">
-                    Цель соревнования с другом — набрать значение как можно ближе к <span class="text-amber-300 font-bold">128 баллам</span>:
-                    <span class="text-indigo-300 font-semibold">+1 балл</span> за каждую тренировку (план 28) и максимум <span class="text-pink-300 font-semibold">100 баллов</span> за % выполнения цели по весу (перевыполнение свыше 100 баллов не учитывается).
-                </p>
-            </div>
-
-            <!-- Предупреждение о приватности веса -->
-            <div class="rounded-2xl bg-emerald-950/40 border border-emerald-500/30 p-3.5 flex gap-3 items-start">
-                <i class="fa-solid fa-shield-halved text-emerald-400 text-base mt-0.5"></i>
-                <div class="text-[11px] text-emerald-100/90 leading-relaxed">
-                    <span class="font-bold text-emerald-300">Гарантия приватности:</span> данные о вашем стартовом, текущем и желаемом весе <b>не распространяются</b> и скрыты от друга. До 29 декабря вы видите только баллы за тренировки и даты посещений друг друга. В финале раскроется лишь итоговая % дельта (но не более 100 баллов)!
-                </div>
-            </div>
-
-            <form id="registrationForm" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Ваше имя в челлендже</label>
-                    <input id="regName" type="text" required placeholder="Например, Алекс"
-                        class="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3.5 py-2.5 text-sm text-white outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Выберите аватарку (включая 🐵 и 🦎)</label>
-                    <div id="regAvatarGrid" class="grid grid-cols-5 gap-2"></div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-300 mb-1">
-                            Вес на 2 ноября (кг) <i class="fa-solid fa-lock text-emerald-400 ml-0.5"></i>
-                        </label>
-                        <input id="regStartWeight" type="number" step="0.1" min="35" max="250" required placeholder="68.5"
-                            class="w-full bg-slate-900/90 border border-slate-700 focus:border-indigo-500 rounded-xl px-3 py-2.5 text-sm text-white outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-300 mb-1">
-                            Желаемый вес финала <i class="fa-solid fa-lock text-emerald-400 ml-0.5"></i>
-                        </label>
-                        <input id="regTargetWeight" type="number" step="0.1" min="35" max="250" required placeholder="62.0"
-                            class="w-full bg-slate-900/90 border border-slate-700 focus:border-pink-500 rounded-xl px-3 py-2.5 text-sm text-white outline-none">
-                    </div>
-                </div>
-
-                <p id="regError" class="text-xs text-rose-400 font-semibold hidden"></p>
-
-                <button type="submit"
-                    class="w-full py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:opacity-95 font-bold text-sm text-white shadow-lg shadow-indigo-500/25 transition active:scale-[0.99]">
-                    🚀 Вступить в «НеБешенную НеСушку»
-                </button>
-            </form>
-        </div>
-    </div>
-
-    <!-- ВЕРХНЯЯ ШАПКА -->
-    <header class="max-w-md mx-auto px-4 pt-4 pb-2 space-y-3">
+    <!-- ВКЛАДКА 1: КАЛЕНДАРЬ И ТРЕНИРОВКИ -->
+    <section id="tab-calendar" class="space-y-4">
+      <div class="card p-4 space-y-3">
         <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2.5">
-                <div class="w-9 h-9 rounded-xl bg-zinc-800 border border-zinc-700 flex items-center justify-center">
-                    <i class="fa-solid fa-fire text-indigo-400 text-base"></i>
-                </div>
-                <div>
-                    <div class="flex items-center gap-1.5">
-                        <h1 class="text-sm font-bold tracking-tight text-white">НеБешенная НеСушка</h1>
-                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-zinc-800 text-zinc-300 border border-zinc-700">128</span>
-                    </div>
-                    <div class="flex items-center gap-2">
-                        <p class="text-[11px] text-zinc-400">2 ноя — 29 дек</p>
-                        <span id="dbSyncBadge" class="text-[9px] font-medium px-1.5 py-0.2 rounded bg-zinc-900 text-zinc-400 border border-zinc-800">
-                            Синхр.
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <button onclick="openSettingsModal()" class="w-9 h-9 rounded-xl glass-card flex items-center justify-center text-zinc-400 hover:text-white transition" title="Личный профиль и настройки БД">
-                <i class="fa-solid fa-sliders text-xs"></i>
+          <div class="flex items-center gap-1.5">
+            <button id="month-btn-10" onclick="selectMonth(10)" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 text-white transition">
+              Ноябрь
             </button>
+            <button id="month-btn-11" onclick="selectMonth(11)" class="px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition">
+              Декабрь
+            </button>
+          </div>
+          <button onclick="jumpToToday()" class="px-2.5 py-1 rounded-lg bg-zinc-900 border border-zinc-800 text-[11px] text-zinc-300 hover:text-white transition">
+            Сегодня
+          </button>
         </div>
 
-        <!-- КАРТОЧКА ДУЭЛИ (ВЫ ПРОТИВ ДРУГА) -->
-        <div class="glass-card rounded-2xl p-3.5 space-y-2.5">
-            <div class="flex items-center justify-between text-[11px] text-zinc-400">
-                <span>Цель: <strong class="text-zinc-200">128 баллов</strong></span>
-                <span id="duelPrivacyBadge" class="text-emerald-400 font-medium flex items-center gap-1">
-                    <i class="fa-solid fa-eye-slash"></i> Вес скрыт до 29.12
-                </span>
-            </div>
-
-            <div class="grid grid-cols-2 gap-2.5">
-                <!-- Игрок 1 (Вы) -->
-                <div class="bg-zinc-900/90 rounded-xl p-3 border border-zinc-800 relative overflow-hidden">
-                    <div class="flex items-center gap-2 mb-1.5">
-                        <span id="meAvatar" class="text-lg">🔥</span>
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-1">
-                                <span id="meName" class="text-xs font-semibold text-white truncate">Вы</span>
-                                <span class="text-[9px] px-1.5 py-0.2 bg-zinc-800 text-zinc-300 rounded font-medium">ВЫ</span>
-                            </div>
-                            <p id="meWorkoutsSub" class="text-[10px] text-zinc-500">0 / 28 трен.</p>
-                        </div>
-                    </div>
-                    <div class="flex items-baseline justify-between">
-                        <div>
-                            <span id="meVisibleScore" class="text-xl font-bold text-white">0</span>
-                            <span class="text-[10px] text-zinc-500">б.</span>
-                        </div>
-                        <span id="meWeightLockTag" class="text-[10px] text-zinc-400 bg-zinc-950 border border-zinc-800 px-1.5 py-0.5 rounded">
-                            🔒 29.12
-                        </span>
-                    </div>
-                </div>
-
-                <!-- Игрок 2 (Друг) -->
-                <div class="bg-zinc-900/90 rounded-xl p-3 border border-zinc-800 relative overflow-hidden">
-                    <div class="flex items-center gap-2 mb-1.5">
-                        <span id="friendAvatar" class="text-lg">🐵</span>
-                        <div class="min-w-0">
-                            <div class="flex items-center gap-1">
-                                <span id="friendName" class="text-xs font-semibold text-white truncate">Друг</span>
-                                <span class="text-[9px] px-1.5 py-0.2 bg-zinc-800 text-zinc-400 rounded font-medium">ДРУГ</span>
-                            </div>
-                            <p id="friendWorkoutsSub" class="text-[10px] text-zinc-500">0 / 28 трен.</p>
-                        </div>
-                    </div>
-                    <div class="flex items-baseline justify-between">
-                        <div>
-                            <span id="friendVisibleScore" class="text-xl font-bold text-zinc-300">0</span>
-                            <span class="text-[10px] text-zinc-500">б.</span>
-                        </div>
-                        <span id="friendWeightLockTag" class="text-[10px] text-zinc-500 bg-zinc-950 border border-zinc-800 px-1.5 py-0.5 rounded">
-                            🔒 скрыто
-                        </span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Статус обязательного минимума текущей недели -->
-            <div id="weeklyMinimumBanner" class="rounded-xl px-3 py-2 text-xs flex items-center justify-between border">
-                <div class="flex items-center gap-2">
-                    <i id="weeklyMinimumIcon" class="fa-solid fa-bell"></i>
-                    <span id="weeklyMinimumText" class="font-medium">Проверка обязательного минимума...</span>
-                </div>
-                <span id="weeklyMinimumCount" class="font-semibold text-[11px] px-2 py-0.5 rounded-md"></span>
-            </div>
+        <!-- Дни недели -->
+        <div class="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold text-zinc-500 pt-1">
+          <div>ПН</div><div>ВТ</div><div>СР</div><div>ЧТ</div><div>ПТ</div><div>СБ</div><div>ВС</div>
         </div>
-    </header>
 
-    <!-- ОСНОВНОЙ КОНТЕНТ -->
-    <main class="max-w-md mx-auto px-4 pt-2 space-y-4">
+        <!-- Сетка календаря -->
+        <div id="calendar-grid" class="grid grid-cols-7 gap-1.5"></div>
 
-        <!-- ВКЛАДКА 1: КАЛЕНДАРЬ И ОТМЕТКА ТРЕНИРОВОК / ВЕСА -->
-        <section id="tab-calendar" class="tab-panel space-y-3.5">
-            <div class="glass-card rounded-2xl p-3.5 space-y-3">
-                <div class="flex items-center justify-between">
-                    <div class="flex gap-1.5">
-                        <button id="btnMonthNov" onclick="switchCalendarMonth(10)"
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white">
-                            Ноябрь
-                        </button>
-                        <button id="btnMonthDec" onclick="switchCalendarMonth(11)"
-                            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-zinc-900 text-zinc-400 hover:text-white">
-                            Декабрь
-                        </button>
-                        <button type="button" onclick="jumpToTodayDate()"
-                            class="px-2.5 py-1.5 rounded-lg text-[11px] font-medium bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white transition">
-                            Сегодня
-                        </button>
-                    </div>
-                    <div class="flex items-center gap-2 text-[10px] text-zinc-400">
-                        <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-indigo-400"></span>Вы</span>
-                        <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-pink-400"></span>Друг</span>
-                    </div>
-                </div>
-
-                <!-- Дни недели -->
-                <div class="grid grid-cols-7 text-center text-[10px] font-medium text-zinc-500 uppercase tracking-wider pt-1">
-                    <div>Пн</div><div>Вт</div><div>Ср</div><div>Чт</div><div>Пт</div><div>Сб</div><div>Вс</div>
-                </div>
-
-                <!-- Сетка дней -->
-                <div id="calendarGrid" class="grid grid-cols-7 gap-1.5"></div>
-
-                <div class="flex items-center justify-between pt-2 text-[10px] text-zinc-500 border-t border-zinc-800/80">
-                    <span>⭐ <b class="text-amber-400/90">27–29 дек</b> — финальный замер веса</span>
-                </div>
-            </div>
-
-            <!-- РЕДАКТОР ВЫБРАННОГО ДНЯ -->
-            <div class="glass-card rounded-2xl p-4 space-y-4">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <span id="selectedDateSubLabel" class="text-[10px] uppercase tracking-wider text-zinc-400 font-medium">Выбранная дата</span>
-                        <h3 id="selectedDateTitle" class="text-base font-bold text-white">2 ноября</h3>
-                    </div>
-                    <div id="selectedDayBadges" class="flex items-center gap-1.5"></div>
-                </div>
-
-                <!-- Информация о тренировке друга в этот день (только факт посещения и комментарий, без веса!) -->
-                <div id="friendDayActivityBox" class="hidden rounded-xl bg-zinc-900 border border-zinc-800 px-3.5 py-2.5 space-y-1 text-xs">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span id="friendDayEmoji" class="text-base">⚡</span>
-                            <div>
-                                <p class="font-semibold text-zinc-200">Тренировка друга</p>
-                                <p id="friendDayDetails" class="text-[11px] text-zinc-400"></p>
-                            </div>
-                        </div>
-                        <span class="text-[11px] font-semibold text-pink-300 bg-pink-500/10 border border-pink-500/20 px-2 py-0.5 rounded-lg">+1 б.</span>
-                    </div>
-                    <p id="friendDayComment" class="hidden text-[11px] text-zinc-300 bg-zinc-950/80 border border-zinc-800/80 rounded-lg px-2.5 py-1.5 italic"></p>
-                </div>
-
-                <!-- Форма отметки своей тренировки -->
-                <div class="space-y-3">
-                    <label class="block text-xs font-medium text-zinc-300">
-                        Вид тренировки
-                    </label>
-                    <div id="workoutTypeButtons" class="grid grid-cols-2 gap-2">
-                        <button type="button" onclick="selectWorkoutType('home')" data-type="home"
-                            class="workout-type-btn flex items-center gap-2.5 p-2.5 rounded-xl border border-zinc-800 bg-zinc-900/60 text-left transition">
-                            <span class="text-base">🏠</span>
-                            <div>
-                                <div class="text-xs font-semibold text-white">Дома</div>
-                                <div class="text-[10px] text-zinc-500">Коврик / онлайн</div>
-                            </div>
-                        </button>
-                        <button type="button" onclick="selectWorkoutType('gym')" data-type="gym"
-                            class="workout-type-btn flex items-center gap-2.5 p-2.5 rounded-xl border border-zinc-800 bg-zinc-900/60 text-left transition">
-                            <span class="text-base">🏋️‍♀️</span>
-                            <div>
-                                <div class="text-xs font-semibold text-white">Тренажерка</div>
-                                <div class="text-[10px] text-zinc-500">Силовая / кардио</div>
-                            </div>
-                        </button>
-                        <button type="button" onclick="selectWorkoutType('dance')" data-type="dance"
-                            class="workout-type-btn flex items-center gap-2.5 p-2.5 rounded-xl border border-zinc-800 bg-zinc-900/60 text-left transition">
-                            <span class="text-base">💃</span>
-                            <div>
-                                <div class="text-xs font-semibold text-white">Танцы</div>
-                                <div class="text-[10px] text-zinc-500">Хорео / зумба</div>
-                            </div>
-                        </button>
-                        <button type="button" onclick="selectWorkoutType('other')" data-type="other"
-                            class="workout-type-btn flex items-center gap-2.5 p-2.5 rounded-xl border border-zinc-800 bg-zinc-900/60 text-left transition">
-                            <span class="text-base">⚡</span>
-                            <div>
-                                <div class="text-xs font-semibold text-white">Другое</div>
-                                <div class="text-[10px] text-zinc-500">Бассейн / бег / йога</div>
-                            </div>
-                        </button>
-                    </div>
-
-                    <!-- Продолжительность тренировки -->
-                    <div class="pt-1">
-                        <div class="flex items-center justify-between text-xs mb-1.5">
-                            <span class="font-medium text-zinc-300">Длительность</span>
-                            <span id="durationValueLabel" class="font-bold text-indigo-400">45 мин</span>
-                        </div>
-                        <input id="workoutDurationInput" type="range" min="15" max="180" step="5" value="45"
-                            oninput="updateDurationLabel(this.value)"
-                            class="w-full accent-indigo-500 cursor-pointer">
-                        <div class="flex justify-between text-[10px] text-zinc-400 mt-1">
-                            <button type="button" onclick="setQuickDuration(30)" class="px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800 hover:bg-zinc-800">30 м</button>
-                            <button type="button" onclick="setQuickDuration(45)" class="px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800 hover:bg-zinc-800">45 м</button>
-                            <button type="button" onclick="setQuickDuration(60)" class="px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800 hover:bg-zinc-800">60 м</button>
-                            <button type="button" onclick="setQuickDuration(90)" class="px-2.5 py-1 rounded-md bg-zinc-900 border border-zinc-800 hover:bg-zinc-800">90 м</button>
-                        </div>
-                    </div>
-
-                    <!-- Поле комментария: что делал на тренировке -->
-                    <div class="pt-1">
-                        <label for="workoutCommentInput" class="block text-xs font-medium text-zinc-300 mb-1.5">
-                            Комментарий (что делал)
-                        </label>
-                        <textarea id="workoutCommentInput" rows="2" maxlength="250"
-                            placeholder="Например: день ног, присед 4х12, 20 мин дорожка..."
-                            class="w-full bg-zinc-900 border border-zinc-800 focus:border-indigo-500 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-500 outline-none resize-none"></textarea>
-                    </div>
-
-                    <div class="flex gap-2 pt-1">
-                        <button type="button" onclick="saveWorkoutForSelectedDay()"
-                            class="flex-1 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition">
-                            Сохранить тренировку (+1 балл)
-                        </button>
-                        <button id="btnDeleteWorkout" type="button" onclick="removeWorkoutForSelectedDay()"
-                            class="hidden px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-rose-500/30 text-rose-400 text-xs font-semibold hover:bg-rose-950/40 transition" title="Удалить отметку">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Приватный замер веса за выбранный день -->
-                <div class="pt-3 border-t border-zinc-800/90 space-y-2">
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-1.5">
-                            <i class="fa-solid fa-lock text-emerald-400 text-[11px]"></i>
-                            <span class="text-xs font-medium text-zinc-300">Личный вес (скрыто от друга)</span>
-                        </div>
-                        <span id="finaleWindowHint" class="hidden text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">
-                            ⭐ Зачёт 27–29 дек
-                        </span>
-                    </div>
-
-                    <div class="flex gap-2">
-                        <input id="dayWeightInput" type="number" step="0.1" min="35" max="250" placeholder="Вес в кг"
-                            class="flex-1 bg-zinc-900 border border-zinc-800 focus:border-emerald-500 rounded-xl px-3 py-2 text-xs text-white outline-none">
-                        <button type="button" onclick="saveWeightForSelectedDay()"
-                            class="px-4 py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 text-xs font-semibold text-white transition">
-                            Сохранить 🔒
-                        </button>
-                    </div>
-                    <p id="myPrivateProgressHint" class="text-[11px] text-zinc-500 leading-relaxed"></p>
-                </div>
-            </div>
-        </section>
-
-        <!-- ВКЛАДКА 2: КОНТРОЛЬ 8 НЕДЕЛЬ (ОБЯЗАТЕЛЬНЫЙ МИНИМУМ 1 ТРЕНИРОВКА В НЕДЕЛЮ) -->
-        <section id="tab-weeks" class="tab-panel hidden space-y-4">
-            <div class="glass-card rounded-3xl p-4 space-y-3">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <h2 class="text-sm font-extrabold text-white">Обязательный минимум: 8 недель</h2>
-                        <p class="text-[11px] text-slate-400">Правило «НеБешенной НеСушки»: минимум 1 тренировка каждые 7 дней</p>
-                    </div>
-                    <span id="weeksCompletedBadge" class="text-xs font-black px-2.5 py-1 rounded-xl bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                        0 / 8 нед.
-                    </span>
-                </div>
-
-                <div id="weeksListContainer" class="space-y-2.5"></div>
-            </div>
-        </section>
-
-        <!-- ВКЛАДКА 3: ФИНАЛЬНОЕ SUMMARY И СТАТИСТИКА -->
-        <section id="tab-summary" class="tab-panel hidden space-y-4">
-            <!-- Таймер обратного отсчёта до открытия Финала (29 декабря) -->
-            <div class="glass-card rounded-2xl p-4 border border-amber-500/30 bg-amber-950/20 space-y-3">
-                <div class="flex items-center justify-between gap-3">
-                    <div class="flex items-center gap-2.5">
-                        <i id="finaleLockIcon" class="fa-solid fa-lock text-amber-400 text-lg"></i>
-                        <div>
-                            <h4 class="text-xs font-bold text-amber-200">Режим Финала (29 Декабря)</h4>
-                            <p id="finaleTimerSubtitle" class="text-[11px] text-amber-300/80">Раскрытие % дельты веса откроется строго по таймеру 29 декабря</p>
-                        </div>
-                    </div>
-                    <span id="finaleStatusBadge" class="text-[10px] font-bold uppercase px-2.5 py-1 rounded-xl bg-amber-500/20 text-amber-300 border border-amber-500/40 shrink-0">
-                        🔒 По таймеру
-                    </span>
-                </div>
-
-                <!-- Табло обратного отсчёта -->
-                <div id="finaleCountdownBox" class="grid grid-cols-4 gap-2 pt-1">
-                    <div class="bg-slate-900/90 border border-amber-500/20 rounded-xl p-2 text-center">
-                        <div id="cdDays" class="text-base font-black text-white">00</div>
-                        <div class="text-[9px] uppercase tracking-wider text-slate-400">Дней</div>
-                    </div>
-                    <div class="bg-slate-900/90 border border-amber-500/20 rounded-xl p-2 text-center">
-                        <div id="cdHours" class="text-base font-black text-white">00</div>
-                        <div class="text-[9px] uppercase tracking-wider text-slate-400">Часов</div>
-                    </div>
-                    <div class="bg-slate-900/90 border border-amber-500/20 rounded-xl p-2 text-center">
-                        <div id="cdMinutes" class="text-base font-black text-white">00</div>
-                        <div class="text-[9px] uppercase tracking-wider text-slate-400">Минут</div>
-                    </div>
-                    <div class="bg-slate-900/90 border border-amber-500/20 rounded-xl p-2 text-center">
-                        <div id="cdSeconds" class="text-base font-black text-amber-400">00</div>
-                        <div class="text-[9px] uppercase tracking-wider text-slate-400">Секунд</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Красивая карточка Summary -->
-            <div id="summaryCardContent" class="glass-card rounded-3xl p-5 shadow-2xl border border-pink-500/30 relative overflow-hidden space-y-5">
-                <div class="text-center space-y-1">
-                    <span class="text-[10px] font-extrabold uppercase tracking-widest px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                        2 Ноября — 29 Декабря
-                    </span>
-                    <h2 class="text-xl font-black text-white pt-1">Итоги «НеБешенной НеСушки»</h2>
-                    <p id="summaryWinnerText" class="text-xs text-slate-300 font-medium"></p>
-                </div>
-
-                <!-- Сравнение близости к 128 баллам -->
-                <div id="summaryPlayersComparison" class="grid grid-cols-2 gap-3"></div>
-
-                <!-- Детальная статистика ваших тренировок -->
-                <div class="bg-slate-900/80 rounded-2xl p-4 border border-slate-800 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-xs font-extrabold uppercase tracking-wider text-indigo-300">
-                            📊 Ваша статистика тренировок
-                        </h3>
-                        <span id="summaryTotalDuration" class="text-xs font-black text-white">0 мин</span>
-                    </div>
-
-                    <div class="grid grid-cols-3 gap-2 text-center">
-                        <div class="bg-slate-950/70 rounded-xl p-2.5 border border-slate-800/80">
-                            <div id="statTotalWorkouts" class="text-base font-black text-indigo-300">0 / 28</div>
-                            <div class="text-[10px] text-slate-400">Тренировок</div>
-                        </div>
-                        <div class="bg-slate-950/70 rounded-xl p-2.5 border border-slate-800/80">
-                            <div id="statTotalHours" class="text-base font-black text-pink-300">0 ч</div>
-                            <div class="text-[10px] text-slate-400">Всего часов</div>
-                        </div>
-                        <div class="bg-slate-950/70 rounded-xl p-2.5 border border-slate-800/80">
-                            <div id="statAvgMinutes" class="text-base font-black text-emerald-300">0 мин</div>
-                            <div class="text-[10px] text-slate-400">Средняя длит.</div>
-                        </div>
-                    </div>
-
-                    <!-- Распределение по видам тренировок -->
-                    <div id="statTypesBreakdown" class="space-y-2 pt-1"></div>
-
-                    <!-- Журнал последних тренировок с комментариями -->
-                    <div class="pt-3 border-t border-slate-800/80 space-y-2">
-                        <h4 class="text-[11px] font-bold uppercase tracking-wider text-slate-400">📝 Дневник ваших тренировок</h4>
-                        <div id="summaryWorkoutLogList" class="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar"></div>
-                    </div>
-                </div>
-
-                <!-- Блок правила расчёта веса (макс 100 баллов) -->
-                <div class="rounded-2xl bg-slate-900/70 border border-slate-800 p-3.5 text-[11px] text-slate-300 space-y-1">
-                    <div class="font-bold text-amber-300 flex items-center gap-1.5">
-                        <i class="fa-solid fa-scale-balanced"></i> Правило 128 баллов («НеБешенная НеСушка»):
-                    </div>
-                    <p class="text-slate-400 leading-relaxed">
-                        • За каждую тренировку начисляется <b>+1 балл</b> (план — 28 тренировок).<br>
-                        • За достижение цели по весу (по минимальному весу в период <b>27–29 декабря</b>) начисляется от 0 до <b>100 баллов</b>. Перевыполнение свыше 100% не даёт больше 100 баллов.<br>
-                        • Побеждает тот, чей итоговый результат окажется ближе всего к <b>128 баллам</b>!
-                    </p>
-                </div>
-
-                <button type="button" onclick="copySummaryText()"
-                    class="w-full py-3 rounded-2xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-xs font-bold text-white shadow-lg transition active:scale-[0.99]">
-                    <i class="fa-solid fa-share-nodes mr-1.5"></i> Скопировать красивое Summary для чата
-                </button>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- МОДАЛЬНОЕ ОКНО НАСТРОЕК ЛИЧНОГО ПРОФИЛЯ (БЕЗ ДОСТУПА К ДАННЫМ ДРУГА) -->
-    <div id="settingsModal" class="fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 hidden overflow-y-auto">
-        <div class="glass-card rounded-3xl p-5 max-w-md w-full border border-slate-700 space-y-4 my-auto">
-            <div class="flex items-center justify-between">
-                <h3 class="text-base font-extrabold text-white">Ваш личный профиль</h3>
-                <button onclick="closeSettingsModal()" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-300 hover:text-white">
-                    <i class="fa-solid fa-xmark"></i>
-                </button>
-            </div>
-
-            <div class="rounded-2xl bg-emerald-950/40 border border-emerald-500/30 p-3 flex items-start gap-2.5">
-                <i class="fa-solid fa-user-shield text-emerald-400 text-sm mt-0.5"></i>
-                <p class="text-[11px] text-emerald-100/90 leading-relaxed">
-                    Здесь отображаются <b>только ваши личные настройки</b>. Данные о весе вашего друга зашифрованы и никогда не передаются на ваше устройство.
-                </p>
-            </div>
-
-            <!-- Блок демо-симуляции (виден ТОЛЬКО вне Telegram при тестировании в браузере, без показа чужого веса) -->
-            <div id="demoPreviewSwitcherBox" class="space-y-1.5 bg-slate-900/90 border border-amber-500/30 rounded-2xl p-3">
-                <div class="flex items-center justify-between">
-                    <span class="text-[10px] font-extrabold uppercase tracking-wider text-amber-300">
-                        🧪 Тестовый режим (только в Preview)
-                    </span>
-                    <span class="text-[10px] text-slate-400">В Telegram скрыто</span>
-                </div>
-                <p class="text-[11px] text-slate-400 leading-snug">
-                    В реальном Telegram профиль жёстко привязан к вашему <code>Telegram ID</code>. В предпросмотре вы можете симулировать тренировку друга на выбранный день, не видя его вес:
-                </p>
-                <button type="button" onclick="simulateFriendWorkoutToday()"
-                    class="w-full mt-1 py-2 rounded-xl bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/40 text-pink-200 text-xs font-bold transition">
-                    ⚡ Симулировать тренировку друга на выбранный день
-                </button>
-            </div>
-
-            <div class="space-y-3 pt-2 border-t border-slate-800">
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1">Ваше имя</label>
-                    <input id="settingsNameInput" type="text"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-slate-300 mb-1.5">Аватарка</label>
-                    <div id="settingsAvatarGrid" class="grid grid-cols-5 gap-2"></div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-2">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-400 mb-1">Ваш вес 2 ноября (кг) 🔒</label>
-                        <input id="settingsStartWeight" type="number" step="0.1"
-                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-400 mb-1">Ваша цель финала (кг) 🔒</label>
-                        <input id="settingsTargetWeight" type="number" step="0.1"
-                            class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-[11px] font-bold text-slate-400 mb-1">
-                        URL Python-сервера БД (оставьте пустым, если запущено на одном Render-сервере)
-                    </label>
-                    <input id="settingsApiUrlInput" type="url" placeholder="Например: https://my-bot.onrender.com"
-                        class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white outline-none">
-                </div>
-            </div>
-
-            <button type="button" onclick="saveProfileSettings()"
-                class="w-full py-3 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white transition">
-                Сохранить мои изменения
-            </button>
-
-            <button type="button" onclick="previewWhitelistScreen()"
-                class="w-full py-2.5 rounded-xl bg-slate-900 border border-slate-700 hover:border-rose-500/50 text-[11px] font-semibold text-slate-300 transition flex items-center justify-center gap-1.5">
-                <i class="fa-solid fa-shield-halved text-rose-400"></i> Посмотреть экран блокировки вайтлиста
-            </button>
+        <!-- Легенда -->
+        <div class="flex items-center justify-between pt-2 border-t border-zinc-800/80 text-[10px] text-zinc-400">
+          <div class="flex items-center gap-3">
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> Вы</span>
+            <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> Друг</span>
+            <span class="flex items-center gap-1"><span class="w-1.5 h-1.5 rounded-full bg-sky-400"></span> Сегодня</span>
+          </div>
+          <span id="week-limit-indicator" class="font-medium text-zinc-300">Неделя: 0/4</span>
         </div>
-    </div>
+      </div>
 
-    <!-- НИЖНЯЯ НАВИГАЦИЯ -->
-    <nav class="fixed bottom-0 inset-x-0 z-30 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/80">
-        <div class="max-w-md mx-auto grid grid-cols-3 px-4 py-2 gap-2">
-            <button onclick="switchTab('calendar')" id="nav-calendar"
-                class="nav-btn flex flex-col items-center py-1.5 rounded-2xl text-indigo-400 bg-indigo-500/10 font-bold text-[11px]">
-                <i class="fa-solid fa-calendar-check text-base mb-0.5"></i>
-                <span>Календарь</span>
-            </button>
-            <button onclick="switchTab('weeks')" id="nav-weeks"
-                class="nav-btn flex flex-col items-center py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 font-bold text-[11px]">
-                <i class="fa-solid fa-list-check text-base mb-0.5"></i>
-                <span>Недели (8)</span>
-            </button>
-            <button onclick="switchTab('summary')" id="nav-summary"
-                class="nav-btn flex flex-col items-center py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 font-bold text-[11px]">
-                <i class="fa-solid fa-trophy text-base mb-0.5"></i>
-                <span>Summary</span>
-            </button>
+      <!-- ФОРМА ЗАПИСИ ТРЕНИРОВКИ НА ВЫБРАННЫЙ ДЕНЬ -->
+      <div class="card p-4 space-y-3.5">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-[11px] text-zinc-400">Выбранная дата</div>
+            <h3 id="selected-date-title" class="text-sm font-bold text-white">11 ноября 2026</h3>
+          </div>
+          <span id="selected-date-badge" class="text-[11px] px-2.5 py-1 rounded-lg bg-zinc-900 border border-zinc-800 text-zinc-300 font-medium">
+            Нет записи
+          </span>
         </div>
-    </nav>
 
-    <script>
-        // =====================================================================
-        // 1. КОНСТАНТЫ, ВАЙТЛИСТ И ПРАВИЛА ЧЕЛЛЕНДЖА «НЕБЕШЕННАЯ НЕСУШКА»
-        // =====================================================================
-        const ALLOWED_USER_IDS = [5835424498, 7647922685];
-        const STORAGE_KEY = "nesushka_128_v3_state";
-        let PYTHON_API_BASE_URL = "";
+        <!-- Информация о тренировке друга в этот день -->
+        <div id="friend-workout-box" class="hidden card-subtle p-3 space-y-1 border-l-2 border-l-amber-400">
+          <div id="friend-workout-header" class="text-xs font-semibold text-amber-300"></div>
+          <div id="friend-workout-comment" class="text-xs text-zinc-300 italic"></div>
+        </div>
 
-        const START_DATE_STR = "2026-11-02";
-        const END_DATE_STR = "2026-12-29";
-        const FINALE_DATES = ["2026-12-27", "2026-12-28", "2026-12-29"];
-        const FINALE_UNLOCK_TIMESTAMP = new Date("2026-12-29T00:00:00").getTime();
+        <!-- Выбор типа тренировки -->
+        <div>
+          <label class="block text-xs font-medium text-zinc-400 mb-2">Вид тренировки (+1 балл)</label>
+          <div id="workout-types-grid" class="grid grid-cols-3 gap-2"></div>
+        </div>
 
-        const MAX_WORKOUT_TARGET = 28;
-        const MAX_WEIGHT_SCORE = 100;
-        const IDEAL_TOTAL_SCORE = 128;
+        <!-- Длительность -->
+        <div>
+          <div class="flex justify-between text-xs mb-1">
+            <span class="text-zinc-400">Длительность</span>
+            <span id="workout-duration-label" class="font-bold text-white">60 мин</span>
+          </div>
+          <input id="workout-duration-input" type="range" min="15" max="180" step="5" value="60" oninput="updateDurationLabel(this.value)" class="w-full accent-emerald-500" />
+        </div>
 
-        const AVATAR_OPTIONS = ["🔥", "🐵", "🦎", "🐯", "🦊", "🐼", "⚡", "👑", "💪", "🚀"];
+        <!-- Поле комментария: что делал -->
+        <div>
+          <label class="block text-xs font-medium text-zinc-400 mb-1">Что делал на тренировке (комментарий)</label>
+          <textarea id="workout-comment-input" rows="2" placeholder="Например: Жим лёжа 4х10, беговая дорожка 20 мин..." class="w-full px-3 py-2 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-white focus:outline-none focus:border-emerald-500 resize-none"></textarea>
+        </div>
 
-        const WORKOUT_TYPES = {
-            home:  { label: "Дома",       emoji: "🏠", color: "bg-indigo-500" },
-            gym:   { label: "Тренажерка", emoji: "🏋️‍♀️", color: "bg-purple-500" },
-            dance: { label: "Танцы",      emoji: "💃", color: "bg-pink-500" },
-            other: { label: "Другое",     emoji: "⚡", color: "bg-emerald-500" }
-        };
+        <div class="flex gap-2 pt-1">
+          <button onclick="saveWorkout()" class="flex-1 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition">
+            ✅ Сохранить тренировку
+          </button>
+          <button id="delete-workout-btn" onclick="deleteWorkout()" class="hidden px-3.5 py-2.5 rounded-xl bg-rose-950/70 hover:bg-rose-900/70 border border-rose-800/50 text-xs font-semibold text-rose-300 transition">
+            Удалить
+          </button>
+        </div>
+      </div>
+    </section>
 
-        const CHALLENGE_WEEKS = [
-            { num: 1, label: "Неделя 1", rangeText: "2 ноя — 8 ноя",   start: "2026-11-02", end: "2026-11-08" },
-            { num: 2, label: "Неделя 2", rangeText: "9 ноя — 15 ноя",  start: "2026-11-09", end: "2026-11-15" },
-            { num: 3, label: "Неделя 3", rangeText: "16 ноя — 22 ноя", start: "2026-11-16", end: "2026-11-22" },
-            { num: 4, label: "Неделя 4", rangeText: "23 ноя — 29 ноя", start: "2026-11-23", end: "2026-11-29" },
-            { num: 5, label: "Неделя 5", rangeText: "30 ноя — 6 дек",  start: "2026-11-30", end: "2026-12-06" },
-            { num: 6, label: "Неделя 6", rangeText: "7 дек — 13 дек",  start: "2026-12-07", end: "2026-12-13" },
-            { num: 7, label: "Неделя 7", rangeText: "14 дек — 20 дек", start: "2026-12-14", end: "2026-12-20" },
-            { num: 8, label: "Неделя 8 (Финал)", rangeText: "21 дек — 29 дек", start: "2026-12-21", end: "2026-12-29" }
-        ];
+    <!-- ВКЛАДКА 2: МОЙ ВЕС (ПРИВАТНО) -->
+    <section id="tab-weight" class="space-y-4 hidden">
+      <div class="card p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <div>
+            <h3 class="text-sm font-bold text-white">Личный дневник веса</h3>
+            <p class="text-[11px] text-zinc-400">Виден только вам • Максимум 100 баллов</p>
+          </div>
+          <span class="text-xs px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-800/40 text-emerald-300 font-semibold">
+            🔒 Приватно
+          </span>
+        </div>
 
-        const MOTIVATION_QUOTES = [
-            "Дисциплина — это решение делать то, чего очень не хочется делать, чтобы достичь того, чего очень хочется достичь!",
-            "Ещё +1 балл в копилку 128! Ты сегодня на шаг ближе к своей идеальной форме.",
-            "Твой друг увидит эту тренировку в календаре и поймёт, что ты не собираешься сдаваться!",
-            "Маленькие шаги каждый день приводят к грандиозным результатам 29 декабря!",
-            "Отличная тренировка! Мышцы работают, баллы растут, цель 128 всё ближе!",
-            "Гордись собой! Обязательный минимум недели закрывается уверенно и красиво."
-        ];
+        <div class="grid grid-cols-3 gap-2 text-center">
+          <div class="card-subtle p-2.5">
+            <div class="text-[10px] text-zinc-400">Старт</div>
+            <div id="w-stat-start" class="text-sm font-bold text-white mt-0.5">— кг</div>
+          </div>
+          <div class="card-subtle p-2.5">
+            <div class="text-[10px] text-zinc-400">Текущий</div>
+            <div id="w-stat-current" class="text-sm font-bold text-emerald-400 mt-0.5">— кг</div>
+          </div>
+          <div class="card-subtle p-2.5">
+            <div class="text-[10px] text-zinc-400">Цель 29.12</div>
+            <div id="w-stat-goal" class="text-sm font-bold text-white mt-0.5">— кг</div>
+          </div>
+        </div>
 
-        // =====================================================================
-        // 3. СОСТОЯНИЕ ПРИЛОЖЕНИЯ + ТРОЙНОЕ СОХРАНЕНИЕ (CLOUDSTORAGE + БД + LOCALSTORAGE)
-        // =====================================================================
-        function getTodayChallengeDateInfo() {
-            const now = new Date();
-            const month = now.getMonth() + 1;
-            const day = now.getDate();
-            // Определяем сегодняшнюю дату внутри окна челленджа (ноябрь-декабрь 2026)
-            const candidate = `2026-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-            if (candidate >= START_DATE_STR && candidate <= END_DATE_STR) {
-                return { dateStr: candidate, monthIdx: month - 1 };
-            }
-            if (candidate < START_DATE_STR) {
-                return { dateStr: START_DATE_STR, monthIdx: 10 };
-            }
-            return { dateStr: END_DATE_STR, monthIdx: 11 };
+        <div class="card-subtle p-3 space-y-1.5">
+          <div class="flex justify-between text-xs">
+            <span class="text-zinc-400">Ваш прогресс по весу:</span>
+            <span id="w-stat-points" class="font-bold text-emerald-400">0 / 100 баллов</span>
+          </div>
+          <div class="w-full h-2 rounded-full bg-zinc-800 overflow-hidden">
+            <div id="w-stat-bar" class="h-full bg-emerald-500 transition-all duration-300" style="width: 0%"></div>
+          </div>
+          <div class="text-[10px] text-zinc-500">
+            Итоговый балл считается по минимальному весу, зафиксированному 27–29 декабря (не более 100 баллов).
+          </div>
+        </div>
+
+        <div class="pt-1 space-y-2">
+          <label class="block text-xs font-medium text-zinc-300">Записать вес на выбранную дату (<span id="weight-date-label">сегодня</span>)</label>
+          <div class="flex gap-2">
+            <input id="weight-value-input" type="number" step="0.1" placeholder="Например, 83.4" class="flex-1 px-3.5 py-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-sm text-white focus:outline-none focus:border-emerald-500" />
+            <button onclick="saveWeightEntry()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition">
+              Сохранить
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-4 space-y-2.5">
+        <h4 class="text-xs font-bold text-zinc-300 uppercase tracking-wider">История взвешиваний</h4>
+        <div id="weight-history-list" class="space-y-1.5 text-xs text-zinc-400"></div>
+      </div>
+    </section>
+
+    <!-- ВКЛАДКА 3: СВОДКА И ТАЙМЕР -->
+    <section id="tab-summary" class="space-y-4 hidden">
+      <!-- Таймер до финала -->
+      <div class="card p-4 space-y-2 text-center">
+        <div class="text-[11px] text-zinc-400 font-medium">До раскрытия баллов за вес (29 декабря 2026)</div>
+        <div id="countdown-timer" class="text-lg font-mono font-extrabold text-white tracking-tight">
+          -- дн : -- ч : -- мин
+        </div>
+      </div>
+
+      <!-- Прогресс по 8 неделям -->
+      <div class="card p-4 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold text-zinc-300 uppercase tracking-wider">Понедельный план (8 недель)</h3>
+          <span class="text-[11px] text-zinc-400">Норма: 3–4 в неделю</span>
+        </div>
+        <div id="weeks-breakdown-list" class="space-y-2"></div>
+      </div>
+
+      <!-- Дневник комментариев -->
+      <div class="card p-4 space-y-3">
+        <h3 class="text-xs font-bold text-zinc-300 uppercase tracking-wider">Дневник тренировок (с комментариями)</h3>
+        <div id="workouts-journal-list" class="space-y-2 text-xs"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ТОСТ-УВЕДОМЛЕНИЕ -->
+  <div id="toast-box" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 px-4 py-2.5 rounded-xl bg-zinc-800 border border-zinc-700 text-xs font-semibold text-white shadow-xl hidden"></div>
+
+  <script>
+    // =====================================================================
+    // КОНСТАНТЫ И НАСТРОЙКИ ЧЕЛЛЕНДЖА
+    // =====================================================================
+    const ALLOWED_USER_IDS = [5835424498, 7647922685];
+    const STORAGE_KEY = 'nesushka_128_v4_state';
+    const CLOUD_KEY = 'nesushka128_player_v4';
+
+    const AVATAR_OPTIONS = ['🦎', '🐵', '🦁', '🐯', '🐻', '🐺', '🦊', '🦍', '🦖', '⚡', '🔥', '🥷'];
+
+    const WORKOUT_TYPES = [
+      { id: 'gym', label: 'Зал / Силовая', icon: '🏋️' },
+      { id: 'cardio', label: 'Кардио / Бег', icon: '🏃' },
+      { id: 'fight', label: 'Бокс / Единоборства', icon: '🥊' },
+      { id: 'swim', label: 'Бассейн', icon: '🏊' },
+      { id: 'home', label: 'Домашняя / ОФП', icon: '💪' },
+      { id: 'stretch', label: 'Йога / Растяжка', icon: '🧘' }
+    ];
+
+    const CHALLENGE_WEEKS = [
+      { num: 1, start: '2026-11-02', end: '2026-11-08', label: 'Неделя 1 (2 ноя — 8 ноя)' },
+      { num: 2, start: '2026-11-09', end: '2026-11-15', label: 'Неделя 2 (9 ноя — 15 ноя)' },
+      { num: 3, start: '2026-11-16', end: '2026-11-22', label: 'Неделя 3 (16 ноя — 22 ноя)' },
+      { num: 4, start: '2026-11-23', end: '2026-11-29', label: 'Неделя 4 (23 ноя — 29 ноя)' },
+      { num: 5, start: '2026-11-30', end: '2026-12-06', label: 'Неделя 5 (30 ноя — 6 дек)' },
+      { num: 6, start: '2026-12-07', end: '2026-12-13', label: 'Неделя 6 (7 дек — 13 дек)' },
+      { num: 7, start: '2026-12-14', end: '2026-12-20', label: 'Неделя 7 (14 дек — 20 дек)' },
+      { num: 8, start: '2026-12-21', end: '2026-12-29', label: 'Неделя 8 + Финал (21 дек — 29 дек)' }
+    ];
+
+    const MOTIVATION_QUOTES = [
+      'Отличная работа! Ещё +1 балл в копилку на пути к 128!',
+      'Дисциплина бьёт мотивацию. Соперник уже чувствует давление!',
+      'Каждая тренировка приближает тебя к идеальной форме к 29 декабря!',
+      'Красавчик! Стабильность — залог победы в НеБешенной НеСушке!'
+    ];
+
+    // =====================================================================
+    // СОСТОЯНИЕ ПРИЛОЖЕНИЯ
+    // =====================================================================
+    let state = {
+      currentUser: 'p1',
+      currentTab: 'calendar',
+      currentMonth: 10, // 10 = Ноябрь, 11 = Декабрь
+      selectedDate: '2026-11-11',
+      selectedWorkoutType: 'gym',
+      selectedRegAvatar: '🦎',
+      players: {
+        p1: {
+          registered: false,
+          name: 'Участник 1',
+          avatar: '🦎',
+          startWeight: 0,
+          goalWeight: 0,
+          workouts: {},
+          weights: {},
+          serverWeightScore: null
+        },
+        p2: {
+          registered: false,
+          name: 'Друг',
+          avatar: '🐵',
+          startWeight: 0,
+          goalWeight: 0,
+          workouts: {},
+          weights: {},
+          serverWeightScore: null
         }
+      }
+    };
 
-        const initialDateInfo = getTodayChallengeDateInfo();
+    // =====================================================================
+    // ОПРЕДЕЛЕНИЕ ТЕКУЩЕЙ ДАТЫ И ВАЙТЛИСТА
+    // =====================================================================
+    function formatDateKey(y, m, d) {
+      return `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+    }
 
-        let appState = {
-            activeSlot: 'p1',
-            currentUserId: ALLOWED_USER_IDS[0],
-            currentMonth: initialDateInfo.monthIdx,
-            selectedDate: initialDateInfo.dateStr,
-            todayDateStr: initialDateInfo.dateStr,
-            selectedWorkoutType: 'home',
-            regSelectedAvatar: '🔥',
-            settingsSelectedAvatar: '🔥',
-            apiBaseUrl: "",
-            players: {
-                p1: {
-                    registered: false,
-                    name: "Вы",
-                    avatar: "🔥",
-                    startWeight: 68.0,
-                    targetWeight: 62.0,
-                    workouts: {},
-                    weightLogs: {},
-                    serverFinaleWeightScore: null
-                },
-                p2: {
-                    registered: true,
-                    name: "Друг",
-                    avatar: "🐵",
-                    startWeight: 72.0,
-                    targetWeight: 66.0,
-                    workouts: {},
-                    weightLogs: {},
-                    serverFinaleWeightScore: null
+    function getTodayChallengeDateInfo() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = now.getMonth();
+      const d = now.getDate();
+      const todayKey = formatDateKey(y, m, d);
+
+      if (todayKey >= '2026-11-02' && todayKey <= '2026-12-29') {
+        return { month: m, dateStr: todayKey, realTodayStr: todayKey };
+      }
+      // Если открыто в ноябре/декабре любого года — сопоставляем день с 2026 годом
+      if (m === 10 || m === 11) {
+        constmapped = formatDateKey(2026, m, d);
+        if (mapped >= '2026-11-02' && mapped <= '2026-12-29') {
+          return { month: m, dateStr: mapped, realTodayStr: mapped };
+        }
+      }
+      return { month: 10, dateStr: '2026-11-02', realTodayStr: todayKey };
+    }
+
+    function verifyWhitelistAccess() {
+      const tg = window.Telegram && window.Telegram.WebApp;
+      const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+      if (tgUser && tgUser.id) {
+        const uid = Number(tgUser.id);
+        if (!ALLOWED_USER_IDS.map(Number).includes(uid)) {
+          document.getElementById('whitelist-user-id').textContent = String(uid);
+          document.getElementById('whitelist-back-btn').classList.add('hidden');
+          document.getElementById('whitelist-blocked-overlay').classList.remove('hidden');
+          return false;
+        }
+        state.currentUser = (uid === Number(ALLOWED_USER_IDS[0])) ? 'p1' : 'p2';
+      }
+      document.getElementById('whitelist-blocked-overlay').classList.add('hidden');
+      return true;
+    }
+
+    function closeWhitelistPreview() {
+      document.getElementById('whitelist-blocked-overlay').classList.add('hidden');
+    }
+
+    // =====================================================================
+    // СОХРАНЕНИЕ: LOCALSTORAGE + TELEGRAM CLOUD + СИНХРОНИЗАЦИЯ ЧЕРЕЗ БОТА
+    // =====================================================================
+    function saveStateToLocal() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          players: state.players
+        }));
+      } catch (e) {}
+      saveStateToCloudStorage();
+    }
+
+    function loadStateFromLocal() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return;
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.players) {
+          ['p1', 'p2'].forEach(slot => {
+            if (parsed.players[slot]) {
+              state.players[slot] = Object.assign({}, state.players[slot], parsed.players[slot]);
+            }
+          });
+        }
+      } catch (e) {}
+    }
+
+    function saveStateToCloudStorage() {
+      try {
+        const tg = window.Telegram && window.Telegram.WebApp;
+        if (!tg || !tg.CloudStorage) return;
+        const mySlot = state.currentUser;
+        const payload = JSON.stringify(state.players[mySlot]);
+        tg.CloudStorage.setItem(`${CLOUD_KEY}_${mySlot}`, payload, function() {});
+      } catch (e) {}
+    }
+
+    function loadStateFromCloudStorage() {
+      return new Promise((resolve) => {
+        try {
+          const tg = window.Telegram && window.Telegram.WebApp;
+          if (!tg || !tg.CloudStorage) return resolve(false);
+          const mySlot = state.currentUser;
+          tg.CloudStorage.getItem(`${CLOUD_KEY}_${mySlot}`, function(err, val) {
+            if (!err && val) {
+              try {
+                const cloudPlayer = JSON.parse(val);
+                if (cloudPlayer && cloudPlayer.registered) {
+                  state.players[mySlot] = Object.assign({}, state.players[mySlot], cloudPlayer);
+                  localStorage.setItem(STORAGE_KEY, JSON.stringify({ players: state.players }));
+                  return resolve(true);
                 }
+              } catch (e) {}
             }
-        };
-
-        if (window.Telegram && window.Telegram.WebApp) {
-            window.Telegram.WebApp.ready();
-            window.Telegram.WebApp.expand();
+            resolve(false);
+          });
+        } catch (e) {
+          resolve(false);
         }
+      });
+    }
 
-        // Проверяем, передал ли бот адрес сервера через ?api=...
-        (function detectUrlApiParam() {
-            try {
-                const params = new URLSearchParams(window.location.search);
-                const apiParam = params.get("api");
-                if (apiParam) {
-                    PYTHON_API_BASE_URL = apiParam.replace(/\/+$/, "");
-                }
-            } catch (e) {}
-        })();
+    // Чтение данных обоих участников из параметра ?sync= от локального бота на ПК
+    function loadSharedStateFromBotUrl() {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const syncParam = params.get('sync');
+        if (!syncParam) return false;
+        const base64 = syncParam.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonStr = decodeURIComponent(escape(window.atob(base64)));
+        const shared = JSON.parse(jsonStr);
+        if (!shared) return false;
 
-        // 1) Сохранение в облако Telegram (Telegram.WebApp.CloudStorage) — НЕ сбрасывается никогда!
-        function saveToTelegramCloud() {
-            try {
-                const cs = window.Telegram?.WebApp?.CloudStorage;
-                if (!cs) return;
-                const me = getMe();
-                const payload = JSON.stringify({
-                    registered: Boolean(me.registered),
-                    name: me.name,
-                    avatar: me.avatar,
-                    startWeight: me.startWeight,
-                    targetWeight: me.targetWeight,
-                    workouts: me.workouts || {},
-                    weightLogs: me.weightLogs || {}
-                });
-                const key = `nesushka_user_${appState.currentUserId}`;
-                cs.setItem(key, payload, function (err) {
-                    if (err) console.warn("CloudStorage setItem error:", err);
-                });
-            } catch (e) {
-                console.warn("CloudStorage not supported in this environment:", e);
+        ['p1', 'p2'].forEach(slot => {
+          const sp = shared[slot];
+          if (!sp || !sp.registered) return;
+          // Для друга обновляем полностью, а для себя — только если локально пусто
+          if (slot !== state.currentUser || !state.players[slot].registered) {
+            state.players[slot].registered = true;
+            state.players[slot].name = sp.name || state.players[slot].name;
+            state.players[slot].avatar = sp.avatar || state.players[slot].avatar;
+          }
+          if (sp.workouts && Object.keys(sp.workouts).length > 0) {
+            state.players[slot].workouts = Object.assign({}, sp.workouts, state.players[slot].workouts);
+            if (slot !== state.currentUser) {
+              state.players[slot].workouts = sp.workouts;
             }
-        }
-
-        function loadFromTelegramCloud() {
-            return new Promise((resolve) => {
-                try {
-                    const cs = window.Telegram?.WebApp?.CloudStorage;
-                    if (!cs) return resolve(false);
-                    const key = `nesushka_user_${appState.currentUserId}`;
-                    cs.getItem(key, function (err, value) {
-                        if (err || !value) return resolve(false);
-                        try {
-                            const parsed = JSON.parse(value);
-                            if (parsed && parsed.registered) {
-                                const me = getMe();
-                                me.registered = true;
-                                me.name = parsed.name || me.name;
-                                me.avatar = parsed.avatar || me.avatar;
-                                me.startWeight = Number(parsed.startWeight) || me.startWeight;
-                                me.targetWeight = Number(parsed.targetWeight) || me.targetWeight;
-                                me.workouts = { ...(parsed.workouts || {}), ...(me.workouts || {}) };
-                                me.weightLogs = { ...(parsed.weightLogs || {}), ...(me.weightLogs || {}) };
-                                return resolve(true);
-                            }
-                        } catch (parseErr) {
-                            console.warn("CloudStorage parse error:", parseErr);
-                        }
-                        resolve(false);
-                    });
-                } catch (e) {
-                    resolve(false);
-                }
-            });
-        }
-
-        // 2) Сохранение в LocalStorage (с привязкой к конкретному Telegram ID + общий ключ)
-        function saveStateToLocal() {
-            try {
-                const me = getMe();
-                localStorage.setItem(`${STORAGE_KEY}_uid_${appState.currentUserId}`, JSON.stringify(me));
-                localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                    players: appState.players,
-                    apiBaseUrl: appState.apiBaseUrl
-                }));
-            } catch (e) {
-                console.warn("LocalStorage save error:", e);
-            }
-            saveToTelegramCloud();
-        }
-
-        function loadStateFromLocal() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    if (parsed.players && parsed.players.p1 && parsed.players.p2) {
-                        appState.players = parsed.players;
-                    }
-                    if (parsed.apiBaseUrl) {
-                        appState.apiBaseUrl = parsed.apiBaseUrl;
-                    }
-                }
-                const userRaw = localStorage.getItem(`${STORAGE_KEY}_uid_${appState.currentUserId}`);
-                if (userRaw) {
-                    const userParsed = JSON.parse(userRaw);
-                    if (userParsed && userParsed.registered) {
-                        const me = getMe();
-                        Object.assign(me, userParsed);
-                    }
-                }
-            } catch (e) {
-                console.warn("LocalStorage load error:", e);
-            }
-        }
-
-        function getEffectiveApiBase() {
-            return (appState.apiBaseUrl || PYTHON_API_BASE_URL || "").replace(/\/+$/, "");
-        }
-
-        // 3) Двусторонняя синхронизация с Python-сервером (SQLite)
-        async function syncFromPythonServer() {
-            const base = getEffectiveApiBase();
-            const badge = document.getElementById('dbSyncBadge');
-            try {
-                const meLocal = getMe();
-                const res = await fetch(`${base}/api/sync_backup`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        user_id: appState.currentUserId,
-                        local_me: meLocal
-                    })
-                });
-                if (!res.ok) throw new Error("API not reachable");
-                const data = await res.json();
-                if (data && data.ok) {
-                    const me = getMe();
-                    const friend = getFriend();
-                    if (data.me && data.me.registered) {
-                        me.registered = true;
-                        me.name = data.me.name || me.name;
-                        me.avatar = data.me.avatar || me.avatar;
-                        if (data.me.startWeight) me.startWeight = Number(data.me.startWeight);
-                        if (data.me.targetWeight) me.targetWeight = Number(data.me.targetWeight);
-                        me.workouts = { ...(me.workouts || {}), ...(data.me.workouts || {}) };
-                        me.weightLogs = { ...(me.weightLogs || {}), ...(data.me.weightLogs || {}) };
-                    }
-                    if (data.friend) {
-                        friend.registered = Boolean(data.friend.registered);
-                        friend.name = data.friend.name || friend.name;
-                        friend.avatar = data.friend.avatar || friend.avatar;
-                        friend.workouts = data.friend.workouts || {};
-                        friend.serverFinaleWeightScore = (typeof data.friend.finaleWeightScore === 'number')
-                            ? data.friend.finaleWeightScore
-                            : null;
-                    }
-                    saveStateToLocal();
-                    if (badge) {
-                        badge.textContent = "🟢 БД + Cloud синхр.";
-                        badge.className = "text-[9px] font-bold px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
-                    }
-                    refreshAllUI();
-                    return true;
-                }
-            } catch (err) {
-                if (badge) {
-                    badge.textContent = "☁️ Telegram Cloud";
-                    badge.className = "text-[9px] font-bold px-1.5 py-0.2 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/30";
-                }
-            }
-            return false;
-        }
-
-        async function postToPythonServer(endpoint, payload) {
-            saveStateToLocal();
-            const base = getEffectiveApiBase();
-            try {
-                const res = await fetch(`${base}${endpoint}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        user_id: appState.currentUserId,
-                        ...payload
-                    })
-                });
-                if (res.ok) {
-                    await syncFromPythonServer();
-                }
-            } catch (e) {
-                // Данные уже сохранены в LocalStorage и автоматически отправятся при следующем коннекте
-            }
-        }
-
-        function getMe() {
-            return appState.players[appState.activeSlot];
-        }
-
-        function getFriend() {
-            return appState.players[appState.activeSlot === 'p1' ? 'p2' : 'p1'];
-        }
-
-        function isFinaleUnlocked() {
-            return Date.now() >= FINALE_UNLOCK_TIMESTAMP;
-        }
-
-        // =====================================================================
-        // 4. ПРОВЕРКА ВАЙТЛИСТА (TELEGRAM ID)
-        // =====================================================================
-        function verifyWhitelistAccess() {
-            const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-            if (tgUser && tgUser.id) {
-                const numericId = Number(tgUser.id);
-                if (!ALLOWED_USER_IDS.includes(numericId)) {
-                    document.getElementById('blockedUserIdDisplay').textContent = tgUser.id;
-                    document.getElementById('closeWhitelistDemoBtn').classList.add('hidden');
-                    document.getElementById('whitelistLockModal').classList.remove('hidden');
-                    return false;
-                }
-                appState.currentUserId = numericId;
-                appState.activeSlot = (numericId === Number(ALLOWED_USER_IDS[1])) ? 'p2' : 'p1';
-                const demoBox = document.getElementById('demoPreviewSwitcherBox');
-                if (demoBox) demoBox.classList.add('hidden');
-            }
-            return true;
-        }
-
-        function previewWhitelistScreen() {
-            closeSettingsModal();
-            const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-            document.getElementById('blockedUserIdDisplay').textContent = tgUser?.id || "777888999 (Демо-режим)";
-            document.getElementById('closeWhitelistDemoBtn').classList.remove('hidden');
-            document.getElementById('whitelistLockModal').classList.remove('hidden');
-        }
-
-        function closeWhitelistDemo() {
-            document.getElementById('whitelistLockModal').classList.add('hidden');
-        }
-
-        // =====================================================================
-        // 5. ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ДАТ И БАЛЛОВ (С ЛИМИТОМ 100 БАЛЛОВ ЗА ВЕС)
-        // =====================================================================
-        function formatRussianDate(dateStr) {
-            const [y, m, d] = dateStr.split('-').map(Number);
-            const months = [
-                'января', 'февраля', 'марта', 'апреля', 'мая', 'июня',
-                'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'
-            ];
-            return `${d} ${months[m - 1]}`;
-        }
-
-        function getWorkoutCount(player) {
-            return Object.keys(player.workouts || {}).length;
-        }
-
-        function getMinFinaleWeight(player) {
-            const logs = player.weightLogs || {};
-            const finaleVals = FINALE_DATES
-                .map(d => parseFloat(logs[d]))
-                .filter(v => !isNaN(v) && v > 0);
-
-            if (finaleVals.length > 0) {
-                return Math.min(...finaleVals);
-            }
-            const allVals = Object.values(logs).map(v => parseFloat(v)).filter(v => !isNaN(v) && v > 0);
-            if (allVals.length > 0) {
-                return Math.min(...allVals);
-            }
-            return player.startWeight;
-        }
-
-        function calculateWeightScore(player) {
-            if (typeof player.serverFinaleWeightScore === 'number' && player !== getMe()) {
-                return Math.min(MAX_WEIGHT_SCORE, Math.max(0, player.serverFinaleWeightScore));
-            }
-            const startW = parseFloat(player.startWeight) || 0;
-            const targetW = parseFloat(player.targetWeight) || 0;
-            const goalDelta = startW - targetW;
-            if (goalDelta <= 0) return 0;
-
-            const minFinaleW = getMinFinaleWeight(player);
-            const actualLost = startW - minFinaleW;
-            if (actualLost <= 0) return 0;
-
-            const rawPercent = (actualLost / goalDelta) * 100;
-            const cappedScore = Math.min(MAX_WEIGHT_SCORE, Math.max(0, rawPercent));
-            return Math.round(cappedScore * 10) / 10;
-        }
-
-        function showToast(message, isError = false) {
-            const box = document.getElementById('toastBox');
-            const icon = document.getElementById('toastIcon');
-            const text = document.getElementById('toastText');
-
-            text.textContent = message;
-            icon.className = isError
-                ? "fa-solid fa-triangle-exclamation text-rose-400 text-lg"
-                : "fa-solid fa-circle-check text-emerald-400 text-lg";
-
-            box.classList.remove('hidden');
-            clearTimeout(window._toastTimer);
-            window._toastTimer = setTimeout(() => {
-                box.classList.add('hidden');
-            }, 3200);
-        }
-
-        // =====================================================================
-        // 6. ОНБОРДИНГ И ВЫБОР АВАТАРКИ (ВКЛЮЧАЯ 🐵 И 🦎)
-        // =====================================================================
-        function renderAvatarPicker(containerId, selectedEmoji, onSelect) {
-            const container = document.getElementById(containerId);
-            if (!container) return;
-            container.innerHTML = '';
-            AVATAR_OPTIONS.forEach(emoji => {
-                const isSelected = emoji === selectedEmoji;
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.textContent = emoji;
-                btn.className = `h-10 rounded-xl text-lg flex items-center justify-center border transition ${
-                    isSelected
-                        ? 'bg-indigo-600/40 border-indigo-400 scale-105 shadow-md'
-                        : 'bg-slate-900/70 border-slate-700 hover:border-slate-500'
-                }`;
-                btn.onclick = () => onSelect(emoji);
-                container.appendChild(btn);
-            });
-        }
-
-        function checkOnboarding() {
-            const me = getMe();
-            const modal = document.getElementById('onboardingModal');
-
-            const selectRegAvatar = (emoji) => {
-                appState.regSelectedAvatar = emoji;
-                renderAvatarPicker('regAvatarGrid', appState.regSelectedAvatar, selectRegAvatar);
-            };
-            renderAvatarPicker('regAvatarGrid', appState.regSelectedAvatar, selectRegAvatar);
-
-            if (!me.registered) {
-                const tgUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
-                if (tgUser && tgUser.first_name) {
-                    document.getElementById('regName').value = tgUser.first_name;
-                }
-                modal.classList.remove('hidden');
-            } else {
-                modal.classList.add('hidden');
-            }
-        }
-
-        document.getElementById('registrationForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-            const name = document.getElementById('regName').value.trim();
-            const startW = parseFloat(document.getElementById('regStartWeight').value);
-            const targetW = parseFloat(document.getElementById('regTargetWeight').value);
-            const errEl = document.getElementById('regError');
-
-            if (!name || isNaN(startW) || isNaN(targetW)) {
-                errEl.textContent = "Пожалуйста, заполните все поля.";
-                errEl.classList.remove('hidden');
-                return;
-            }
-            if (targetW >= startW) {
-                errEl.textContent = "Желаемый вес финала должен быть меньше стартового веса на 2 ноября.";
-                errEl.classList.remove('hidden');
-                return;
-            }
-
-            errEl.classList.add('hidden');
-            const me = getMe();
-            me.registered = true;
-            me.name = name;
-            me.avatar = appState.regSelectedAvatar;
-            me.startWeight = startW;
-            me.targetWeight = targetW;
-            me.weightLogs[START_DATE_STR] = startW;
-
-            document.getElementById('onboardingModal').classList.add('hidden');
-            await postToPythonServer('/api/register', {
-                name: me.name,
-                avatar: me.avatar,
-                startWeight: me.startWeight,
-                targetWeight: me.targetWeight
-            });
-            refreshAllUI();
-            showToast("Вы зарегистрированы в «НеБешенной НеСушке»! Вес надёжно скрыт 🔒");
+          }
+          if (typeof sp.weightScore === 'number') {
+            state.players[slot].serverWeightScore = sp.weightScore;
+          }
         });
 
-        // =====================================================================
-        // 7. РЕНДЕР ШАПКИ ДУЭЛИ И СТАТУСА НЕДЕЛИ
-        // =====================================================================
-        function renderHeaderDuel() {
-            const me = getMe();
-            const friend = getFriend();
-            const unlocked = isFinaleUnlocked();
+        const badge = document.getElementById('sync-status-badge');
+        if (badge) {
+          badge.textContent = '🟢 Синхр. с ботом';
+          badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-700/50 text-emerald-300 cursor-pointer';
+        }
+        saveStateToLocal();
+        return true;
+      } catch (e) {
+        console.warn('Sync URL parse error:', e);
+        return false;
+      }
+    }
 
-            const meWorkouts = getWorkoutCount(me);
-            const friendWorkouts = getWorkoutCount(friend);
+    // Отправка ваших данных обратно в локальный бот (при открытии через нижнюю кнопку клавиатуры)
+    function sendSyncToBot() {
+      const tg = window.Telegram && window.Telegram.WebApp;
+      const myPlayer = state.players[state.currentUser];
+      if (!tg || !tg.sendData) {
+        showToast('Откройте приложение через кнопку внизу чата бота!');
+        return;
+      }
+      try {
+        tg.sendData(JSON.stringify({
+          action: 'full_sync',
+          slot: state.currentUser,
+          player: myPlayer
+        }));
+      } catch (e) {
+        showToast('Для отправки в бот откройте приложение через нижнюю кнопку в чате!');
+      }
+    }
 
-            const meWeightPts = calculateWeightScore(me);
-            const friendWeightPts = calculateWeightScore(friend);
+    // =====================================================================
+    // РАСЧЁТ БАЛЛОВ И ПРАВИЛ ЧЕЛЛЕНДЖА
+    // =====================================================================
+    function isFinaleUnlocked() {
+      return new Date() >= new Date('2026-12-29T00:00:00');
+    }
 
-            const meDisplayScore = unlocked ? Math.round((meWorkouts + meWeightPts) * 10) / 10 : meWorkouts;
-            const friendDisplayScore = unlocked ? Math.round((friendWorkouts + friendWeightPts) * 10) / 10 : friendWorkouts;
+    function getWeekForDate(dateStr) {
+      return CHALLENGE_WEEKS.find(w => dateStr >= w.start && dateStr <= w.end) || null;
+    }
 
-            document.getElementById('meAvatar').textContent = me.avatar || '🔥';
-            document.getElementById('meName').textContent = me.name || 'Вы';
-            document.getElementById('meWorkoutsSub').textContent = `${meWorkouts} / ${MAX_WORKOUT_TARGET} тренировок`;
-            document.getElementById('meVisibleScore').textContent = meDisplayScore;
+    function getWorkoutCountInWeek(slot, weekObj) {
+      if (!weekObj) return 0;
+      const workouts = state.players[slot].workouts || {};
+      return Object.keys(workouts).filter(d => d >= weekObj.start && d <= weekObj.end).length;
+    }
 
-            document.getElementById('friendAvatar').textContent = friend.avatar || '🐵';
-            document.getElementById('friendName').textContent = friend.name || 'Друг';
-            document.getElementById('friendWorkoutsSub').textContent = `${friendWorkouts} / ${MAX_WORKOUT_TARGET} тренировок`;
-            document.getElementById('friendVisibleScore').textContent = friendDisplayScore;
+    function getTotalWorkoutPoints(slot) {
+      const workouts = state.players[slot].workouts || {};
+      return Math.min(28, Object.keys(workouts).length);
+    }
 
-            const privacyBadge = document.getElementById('duelPrivacyBadge');
-            const meLockTag = document.getElementById('meWeightLockTag');
-            const friendLockTag = document.getElementById('friendWeightLockTag');
+    function getPlayerWeightPoints(slot) {
+      const p = state.players[slot];
+      if (slot !== state.currentUser && typeof p.serverWeightScore === 'number') {
+        return p.serverWeightScore;
+      }
+      const startW = parseFloat(p.startWeight);
+      const goalW = parseFloat(p.goalWeight);
+      if (!startW || !goalW || startW <= goalW) return 0;
 
-            if (unlocked) {
-                privacyBadge.innerHTML = `<i class="fa-solid fa-trophy text-amber-400"></i> Финал 29.12 открыт!`;
-                meLockTag.textContent = `+${meWeightPts} б. за вес`;
-                friendLockTag.textContent = `+${friendWeightPts} б. за вес`;
-            } else {
-                privacyBadge.innerHTML = `<i class="fa-solid fa-eye-slash"></i> Вес скрыт до 29.12`;
-                meLockTag.textContent = `🔒 +вес 29.12`;
-                friendLockTag.textContent = `🔒 скрыто`;
-            }
+      const weights = p.weights || {};
+      const finalDates = ['2026-12-27', '2026-12-28', '2026-12-29'];
+      let minW = null;
+      finalDates.forEach(d => {
+        const val = parseFloat(weights[d]);
+        if (!isNaN(val) && val > 0 && (minW === null || val < minW)) minW = val;
+      });
+      if (minW === null) {
+        Object.values(weights).forEach(v => {
+          const val = parseFloat(v);
+          if (!isNaN(val) && val > 0 && (minW === null || val < minW)) minW = val;
+        });
+      }
+      if (minW === null) return 0;
 
-            const activeWeek = CHALLENGE_WEEKS.find(w => appState.selectedDate >= w.start && appState.selectedDate <= w.end) || CHALLENGE_WEEKS[0];
-            const weekWorkouts = getWorkoutsInDateRange(me, activeWeek.start, activeWeek.end);
+      const targetDelta = startW - goalW;
+      const actualDelta = Math.max(0, startW - minW);
+      const rawScore = (actualDelta / targetDelta) * 100;
+      return Math.min(100, Math.max(0, Math.round(rawScore * 10) / 10));
+    }
 
-            const banner = document.getElementById('weeklyMinimumBanner');
-            const icon = document.getElementById('weeklyMinimumIcon');
-            const text = document.getElementById('weeklyMinimumText');
-            const countBadge = document.getElementById('weeklyMinimumCount');
+    // =====================================================================
+    // РЕГИСТРАЦИЯ И ПРОФИЛЬ
+    // =====================================================================
+    function renderRegAvatars() {
+      const grid = document.getElementById('reg-avatar-grid');
+      if (!grid) return;
+      grid.innerHTML = AVATAR_OPTIONS.map(av => {
+        const active = state.selectedRegAvatar === av;
+        return `
+          <button type="button" onclick="selectRegAvatar('${av}')"
+            class="h-10 rounded-xl text-xl flex items-center justify-center border transition ${
+              active ? 'bg-emerald-950/80 border-emerald-500 scale-105' : 'bg-zinc-900 border-zinc-800 hover:border-zinc-700'
+            }">
+            ${av}
+          </button>
+        `;
+      }).join('');
+    }
 
-            if (weekWorkouts >= 1) {
-                banner.className = "rounded-xl px-3 py-2 text-xs flex items-center justify-between border bg-zinc-900 border-zinc-800 text-zinc-300";
-                icon.className = "fa-solid fa-check text-emerald-400";
-                text.textContent = `${activeWeek.label}: минимум выполнен`;
-                countBadge.className = "font-semibold text-[11px] px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300";
-                countBadge.textContent = `${weekWorkouts} трен.`;
-            } else {
-                banner.className = "rounded-xl px-3 py-2 text-xs flex items-center justify-between border bg-amber-950/20 border-amber-500/30 text-amber-200";
-                icon.className = "fa-solid fa-bell text-amber-400";
-                text.textContent = `${activeWeek.label}: нужна мин. 1 тренировка`;
-                countBadge.className = "font-semibold text-[11px] px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300";
-                countBadge.textContent = `0 / 1`;
-            }
+    function selectRegAvatar(av) {
+      state.selectedRegAvatar = av;
+      renderRegAvatars();
+    }
+
+    function openEditProfileModal() {
+      const p = state.players[state.currentUser];
+      document.getElementById('reg-name').value = p.name && p.name !== 'Участник 1' && p.name !== 'Друг' ? p.name : '';
+      document.getElementById('reg-start-weight').value = p.startWeight || '';
+      document.getElementById('reg-goal-weight').value = p.goalWeight || '';
+      state.selectedRegAvatar = p.avatar || (state.currentUser === 'p1' ? '🦎' : '🐵');
+      renderRegAvatars();
+      document.getElementById('registration-modal').classList.remove('hidden');
+    }
+
+    function saveRegistration() {
+      const nameVal = document.getElementById('reg-name').value.trim();
+      const startW = parseFloat(document.getElementById('reg-start-weight').value);
+      const goalW = parseFloat(document.getElementById('reg-goal-weight').value);
+
+      if (!nameVal) {
+        showToast('Введите ваше имя');
+        return;
+      }
+      if (isNaN(startW) || startW <= 30 || isNaN(goalW) || goalW <= 30) {
+        showToast('Введите корректный стартовый и целевой вес');
+        return;
+      }
+      if (goalW >= startW) {
+        showToast('Целевой вес должен быть меньше стартового');
+        return;
+      }
+
+      const p = state.players[state.currentUser];
+      p.registered = true;
+      p.name = nameVal;
+      p.avatar = state.selectedRegAvatar;
+      p.startWeight = startW;
+      p.goalWeight = goalW;
+      if (!p.weights['2026-11-02']) {
+        p.weights['2026-11-02'] = startW;
+      }
+
+      saveStateToLocal();
+      document.getElementById('registration-modal').classList.add('hidden');
+      renderAll();
+      showToast('Профиль сохранён в облаке Telegram!');
+    }
+
+    // =====================================================================
+    // ЗАПИСЬ И УДАЛЕНИЕ ТРЕНИРОВОК
+    // =====================================================================
+    function renderWorkoutTypes() {
+      const grid = document.getElementById('workout-types-grid');
+      if (!grid) return;
+      grid.innerHTML = WORKOUT_TYPES.map(t => {
+        const active = state.selectedWorkoutType === t.id;
+        return `
+          <button type="button" onclick="selectWorkoutType('${t.id}')"
+            class="p-2.5 rounded-xl border text-left transition flex flex-col gap-1 ${
+              active ? 'bg-emerald-950/60 border-emerald-500 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-400 hover:text-zinc-200'
+            }">
+            <span class="text-lg">${t.icon}</span>
+            <span class="text-[11px] font-semibold leading-tight">${t.label}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectWorkoutType(typeId) {
+      state.selectedWorkoutType = typeId;
+      renderWorkoutTypes();
+    }
+
+    function updateDurationLabel(val) {
+      document.getElementById('workout-duration-label').textContent = `${val} мин`;
+    }
+
+    function saveWorkout() {
+      const mySlot = state.currentUser;
+      const p = state.players[mySlot];
+      const dateStr = state.selectedDate;
+      const isExisting = !!p.workouts[dateStr];
+
+      const weekObj = getWeekForDate(dateStr);
+      if (!isExisting && weekObj) {
+        const countInWeek = getWorkoutCountInWeek(mySlot, weekObj);
+        if (countInWeek >= 4) {
+          showToast('Лимит недели: максимум 4 зачётные тренировки!');
+          return;
+        }
+      }
+      if (!isExisting && Object.keys(p.workouts).length >= 28) {
+        showToast('Достигнут максимум: 28 из 28 тренировок за челлендж!');
+        return;
+      }
+
+      const duration = parseInt(document.getElementById('workout-duration-input').value, 10) || 60;
+      const comment = document.getElementById('workout-comment-input').value.trim();
+
+      p.workouts[dateStr] = {
+        type: state.selectedWorkoutType,
+        duration: duration,
+        comment: comment
+      };
+
+      saveStateToLocal();
+      renderAll();
+
+      const quote = MOTIVATION_QUOTES[Math.floor(Math.random() * MOTIVATION_QUOTES.length)];
+      document.getElementById('motivation-text').textContent = quote;
+      document.getElementById('motivation-modal').classList.remove('hidden');
+    }
+
+    function deleteWorkout() {
+      const p = state.players[state.currentUser];
+      if (p.workouts && p.workouts[state.selectedDate]) {
+        delete p.workouts[state.selectedDate];
+        saveStateToLocal();
+        renderAll();
+        showToast('Тренировка удалена');
+      }
+    }
+
+    function closeMotivationModal() {
+      document.getElementById('motivation-modal').classList.add('hidden');
+    }
+
+    // =====================================================================
+    // ЗАПИСЬ ВЕСА
+    // =====================================================================
+    function saveWeightEntry() {
+      const val = parseFloat(document.getElementById('weight-value-input').value);
+      if (isNaN(val) || val < 30 || val > 250) {
+        showToast('Введите корректный вес в кг');
+        return;
+      }
+      const p = state.players[state.currentUser];
+      p.weights[state.selectedDate] = val;
+      saveStateToLocal();
+      document.getElementById('weight-value-input').value = '';
+      renderAll();
+      showToast(`Вес ${val} кг сохранён приватно!`);
+    }
+
+    // =====================================================================
+    // РЕНДЕРИНГ КАЛЕНДАРЯ И ИНТЕРФЕЙСА
+    // =====================================================================
+    function selectMonth(m) {
+      state.currentMonth = m;
+      renderCalendar();
+    }
+
+    function jumpToToday() {
+      const info = getTodayChallengeDateInfo();
+      state.currentMonth = info.month;
+      state.selectedDate = info.dateStr;
+      renderAll();
+    }
+
+    function selectDate(dateStr) {
+      state.selectedDate = dateStr;
+      const p = state.players[state.currentUser];
+      const existing = p.workouts[dateStr];
+      if (existing) {
+        state.selectedWorkoutType = existing.type || 'gym';
+        document.getElementById('workout-duration-input').value = existing.duration || 60;
+        updateDurationLabel(existing.duration || 60);
+        document.getElementById('workout-comment-input').value = existing.comment || '';
+      } else {
+        document.getElementById('workout-duration-input').value = 60;
+        updateDurationLabel(60);
+        document.getElementById('workout-comment-input').value = '';
+      }
+      renderAll();
+    }
+
+    function formatHumanDate(dateStr) {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const months = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+      return `${d} ${months[m - 1]} ${y}`;
+    }
+
+    function renderScoreboard() {
+      const finale = isFinaleUnlocked();
+      const pill = document.getElementById('finale-lock-pill');
+      if (pill) {
+        pill.textContent = finale ? '🔓 Финал открыт: баллы за вес начислены!' : '🔒 Вес скрыт до 29.12';
+      }
+
+      ['p1', 'p2'].forEach(slot => {
+        const p = state.players[slot];
+        const isMe = state.currentUser === slot;
+        const wPts = getTotalWorkoutPoints(slot);
+        const weightPts = getPlayerWeightPoints(slot);
+        const total = finale ? Math.round((wPts + weightPts) * 10) / 10 : wPts;
+
+        document.getElementById(`${slot}-avatar`).textContent = p.avatar || (slot === 'p1' ? '🦎' : '🐵');
+        document.getElementById(`${slot}-name`).textContent = p.name || (slot === 'p1' ? 'Участник 1' : 'Друг');
+        document.getElementById(`${slot}-workouts-sub`).textContent = `${wPts} / 28 тренировок`;
+        document.getElementById(`${slot}-total-pts`).textContent = total;
+
+        const youBadge = document.getElementById(`${slot}-you-badge`);
+        if (youBadge) {
+          youBadge.classList.toggle('hidden', !isMe);
         }
 
-        function getWorkoutsInDateRange(player, startStr, endStr) {
-            return Object.keys(player.workouts || {}).filter(d => d >= startStr && d <= endStr).length;
+        const wPill = document.getElementById(`${slot}-weight-pill`);
+        if (wPill) {
+          if (finale) {
+            wPill.textContent = `+${weightPts} б. вес`;
+          } else if (isMe) {
+            wPill.textContent = '🔒 +вес 29.12';
+          } else {
+            wPill.textContent = '🔒 скрыто';
+          }
+        }
+      });
+    }
+
+    function renderCalendar() {
+      const m = state.currentMonth;
+      document.getElementById('month-btn-10').className = m === 10
+        ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 text-white transition'
+        : 'px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition';
+      document.getElementById('month-btn-11').className = m === 11
+        ? 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-zinc-800 text-white transition'
+        : 'px-3 py-1.5 rounded-lg text-xs font-semibold text-zinc-400 hover:text-white transition';
+
+      const grid = document.getElementById('calendar-grid');
+      const year = 2026;
+      const daysInMonth = new Date(year, m + 1, 0).getDate();
+      const firstDayJs = new Date(year, m, 1).getDay();
+      const startOffset = (firstDayJs + 6) % 7; // ПН = 0
+
+      const todayInfo = getTodayChallengeDateInfo();
+      const mySlot = state.currentUser;
+      const friendSlot = mySlot === 'p1' ? 'p2' : 'p1';
+
+      let html = '';
+      for (let i = 0; i < startOffset; i++) {
+        html += `<div class="h-11"></div>`;
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = formatDateKey(year, m, d);
+        const inChallenge = dateStr >= '2026-11-02' && dateStr <= '2026-12-29';
+        const isSelected = state.selectedDate === dateStr;
+        const isToday = todayInfo.realTodayStr === dateStr;
+
+        const myWorkout = state.players[mySlot].workouts[dateStr];
+        const friendWorkout = state.players[friendSlot].workouts[dateStr];
+
+        if (!inChallenge) {
+          html += `
+            <div class="h-11 rounded-xl flex items-center justify-center text-xs text-zinc-700 bg-zinc-950/40">
+              ${d}
+            </div>
+          `;
+          continue;
         }
 
-        // =====================================================================
-        // 8. КАЛЕНДАРЬ (2 НОЯБРЯ — 29 ДЕКАБРЯ) И РЕДАКТОР ДНЯ
-        // =====================================================================
-        function updateMonthButtonsUI() {
-            const btnNov = document.getElementById('btnMonthNov');
-            const btnDec = document.getElementById('btnMonthDec');
-            if (!btnNov || !btnDec) return;
-            if (appState.currentMonth === 10) {
-                btnNov.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white";
-                btnDec.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-zinc-900 text-zinc-400 hover:text-white";
-            } else {
-                btnDec.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white";
-                btnNov.className = "px-3 py-1.5 rounded-lg text-xs font-semibold transition bg-zinc-900 text-zinc-400 hover:text-white";
-            }
-        }
-
-        function jumpToTodayDate() {
-            const info = getTodayChallengeDateInfo();
-            appState.currentMonth = info.monthIdx;
-            appState.selectedDate = info.dateStr;
-            appState.todayDateStr = info.dateStr;
-            updateMonthButtonsUI();
-            refreshAllUI();
-        }
-
-        function switchCalendarMonth(monthIdx) {
-            appState.currentMonth = monthIdx;
-            if (monthIdx === 10) {
-                if (!appState.selectedDate.startsWith("2026-11")) {
-                    appState.selectedDate = appState.todayDateStr.startsWith("2026-11") ? appState.todayDateStr : "2026-11-02";
-                }
-            } else {
-                if (!appState.selectedDate.startsWith("2026-12")) {
-                    appState.selectedDate = appState.todayDateStr.startsWith("2026-12") ? appState.todayDateStr : "2026-12-01";
-                }
-            }
-            updateMonthButtonsUI();
-            refreshAllUI();
-        }
-
-        function renderCalendarGrid() {
-            updateMonthButtonsUI();
-            const grid = document.getElementById('calendarGrid');
-            if (!grid) return;
-            grid.innerHTML = '';
-
-            const year = 2026;
-            const month = appState.currentMonth;
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-
-            const firstDayDate = new Date(year, month, 1);
-            let startOffset = firstDayDate.getDay() - 1;
-            if (startOffset < 0) startOffset = 6;
-
-            for (let i = 0; i < startOffset; i++) {
-                const empty = document.createElement('div');
-                empty.className = "h-11 rounded-xl bg-transparent";
-                grid.appendChild(empty);
-            }
-
-            const me = getMe();
-            const friend = getFriend();
-
-            for (let day = 1; day <= daysInMonth; day++) {
-                const mStr = String(month + 1).padStart(2, '0');
-                const dStr = String(day).padStart(2, '0');
-                const dateStr = `${year}-${mStr}-${dStr}`;
-
-                const isOutOfChallenge = (dateStr < START_DATE_STR || dateStr > END_DATE_STR);
-                const isSelected = (dateStr === appState.selectedDate);
-                const isToday = (dateStr === appState.todayDateStr);
-                const isFinaleDay = FINALE_DATES.includes(dateStr);
-
-                const myWorkout = me.workouts[dateStr];
-                const friendWorkout = friend.workouts[dateStr];
-                const hasMyWeight = me.weightLogs && me.weightLogs[dateStr] !== undefined;
-
-                const cell = document.createElement('button');
-                cell.type = 'button';
-
-                if (isOutOfChallenge) {
-                    cell.disabled = true;
-                    cell.className = "h-11 rounded-xl border border-zinc-900/60 bg-zinc-950/30 text-zinc-700 flex flex-col items-center justify-center text-xs opacity-35 cursor-not-allowed";
-                    cell.innerHTML = `<span>${day}</span>`;
-                } else {
-                    let baseCls = "h-11 rounded-xl border flex flex-col items-center justify-between p-1.5 transition relative ";
-                    if (isSelected) {
-                        baseCls += "bg-indigo-600/20 border-indigo-500 text-white ";
-                    } else if (myWorkout) {
-                        baseCls += "bg-zinc-900 border-zinc-700 text-zinc-100 hover:border-zinc-500 ";
-                    } else {
-                        baseCls += "bg-zinc-950/60 border-zinc-800/80 text-zinc-400 hover:border-zinc-700 ";
-                    }
-                    if (isFinaleDay) {
-                        baseCls += "finale-day-glow ";
-                    }
-                    cell.className = baseCls;
-
-                    const topBadge = isFinaleDay
-                        ? `<span class="absolute -top-1 -right-1 text-[8px]">⭐</span>`
-                        : (isToday ? `<span class="absolute top-1 left-1 w-1.5 h-1.5 rounded-full bg-emerald-400" title="Сегодня"></span>` : '') +
-                          (hasMyWeight ? `<span class="absolute top-0.5 right-1 text-[7px] text-zinc-500">🔒</span>` : '');
-
-                    const myDot = myWorkout
-                        ? `<span class="text-[10px] leading-none" title="Ваша тренировка">${WORKOUT_TYPES[myWorkout.type]?.emoji || '🔥'}</span>`
-                        : `<span class="w-1 h-1 rounded-full bg-zinc-800"></span>`;
-
-                    const friendDot = friendWorkout
-                        ? `<span class="w-1.5 h-1.5 rounded-full bg-pink-400" title="Друг тренировался"></span>`
-                        : '';
-
-                    cell.innerHTML = `
-                        ${topBadge}
-                        <span class="text-[11px] font-semibold leading-none">${day}</span>
-                        <div class="flex items-center gap-1">${myDot}${friendDot}</div>
-                    `;
-                    cell.onclick = () => {
-                        appState.selectedDate = dateStr;
-                        refreshAllUI();
-                    };
-                }
-                grid.appendChild(cell);
-            }
-        }
-
-        function selectWorkoutType(typeKey) {
-            appState.selectedWorkoutType = typeKey;
-            document.querySelectorAll('.workout-type-btn').forEach(btn => {
-                const isMatch = btn.getAttribute('data-type') === typeKey;
-                btn.className = `workout-type-btn flex items-center gap-2.5 p-2.5 rounded-xl border text-left transition ${
-                    isMatch
-                        ? 'border-indigo-500 bg-indigo-600/15'
-                        : 'border-zinc-800 bg-zinc-900/60 hover:border-zinc-700'
-                }`;
-            });
-        }
-
-        function updateDurationLabel(val) {
-            document.getElementById('durationValueLabel').textContent = `${val} мин`;
-        }
-
-        function setQuickDuration(mins) {
-            const input = document.getElementById('workoutDurationInput');
-            input.value = mins;
-            updateDurationLabel(mins);
-        }
-
-        function renderSelectedDayEditor() {
-            const dateStr = appState.selectedDate;
-            const me = getMe();
-            const friend = getFriend();
-
-            const isToday = (dateStr === appState.todayDateStr);
-            const subLabelEl = document.getElementById('selectedDateSubLabel');
-            if (subLabelEl) {
-                subLabelEl.textContent = isToday ? "Сегодня • Текущая дата" : "Выбранная дата";
-                subLabelEl.className = isToday
-                    ? "text-[10px] uppercase tracking-wider text-emerald-400 font-semibold"
-                    : "text-[10px] uppercase tracking-wider text-zinc-400 font-medium";
-            }
-
-            document.getElementById('selectedDateTitle').textContent = formatRussianDate(dateStr);
-
-            const badgesBox = document.getElementById('selectedDayBadges');
-            badgesBox.innerHTML = '';
-            if (FINALE_DATES.includes(dateStr)) {
-                badgesBox.innerHTML += `<span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-amber-500/15 text-amber-300 border border-amber-500/30">⭐ Финал веса</span>`;
-            }
-
-            const friendBox = document.getElementById('friendDayActivityBox');
-            const friendCommentEl = document.getElementById('friendDayComment');
-            const friendWorkout = friend.workouts[dateStr];
-            if (friendWorkout) {
-                const wInfo = WORKOUT_TYPES[friendWorkout.type] || WORKOUT_TYPES.other;
-                document.getElementById('friendDayEmoji').textContent = wInfo.emoji;
-                document.getElementById('friendDayDetails').textContent = `${wInfo.label} • ${friendWorkout.duration} мин`;
-                if (friendWorkout.comment && friendWorkout.comment.trim()) {
-                    friendCommentEl.textContent = `«${friendWorkout.comment.trim()}»`;
-                    friendCommentEl.classList.remove('hidden');
-                } else {
-                    friendCommentEl.textContent = '';
-                    friendCommentEl.classList.add('hidden');
-                }
-                friendBox.classList.remove('hidden');
-            } else {
-                friendBox.classList.add('hidden');
-            }
-
-            const myWorkout = me.workouts[dateStr];
-            const btnDelete = document.getElementById('btnDeleteWorkout');
-            const commentInput = document.getElementById('workoutCommentInput');
-            if (myWorkout) {
-                selectWorkoutType(myWorkout.type);
-                setQuickDuration(myWorkout.duration);
-                if (commentInput) commentInput.value = myWorkout.comment || '';
-                btnDelete.classList.remove('hidden');
-            } else {
-                selectWorkoutType(appState.selectedWorkoutType || 'home');
-                if (commentInput) commentInput.value = '';
-                btnDelete.classList.add('hidden');
-            }
-
-            const weightInput = document.getElementById('dayWeightInput');
-            const finaleHint = document.getElementById('finaleWindowHint');
-            if (FINALE_DATES.includes(dateStr)) {
-                finaleHint.classList.remove('hidden');
-            } else {
-                finaleHint.classList.add('hidden');
-            }
-
-            weightInput.value = (me.weightLogs && me.weightLogs[dateStr] !== undefined) ? me.weightLogs[dateStr] : '';
-
-            const myWeightPts = calculateWeightScore(me);
-            const hintEl = document.getElementById('myPrivateProgressHint');
-            hintEl.innerHTML = `Старт 2.11: <b>${me.startWeight} кг</b> → цель: <b>${me.targetWeight} кг</b>. За вес: <b class="text-zinc-300">${myWeightPts} / 100 б.</b>`;
-        }
-
-        async function saveWorkoutForSelectedDay() {
-            const me = getMe();
-            const dateStr = appState.selectedDate;
-            const duration = parseInt(document.getElementById('workoutDurationInput').value, 10) || 45;
-            const typeKey = appState.selectedWorkoutType || 'home';
-            const comment = (document.getElementById('workoutCommentInput')?.value || '').trim();
-
-            me.workouts[dateStr] = {
-                type: typeKey,
-                duration: duration,
-                comment: comment
-            };
-
-            await postToPythonServer('/api/workout', {
-                date: dateStr,
-                type: typeKey,
-                duration: duration,
-                comment: comment,
-                action: 'save'
-            });
-
-            refreshAllUI();
-            openMotivationModal(dateStr, typeKey, duration, comment);
-        }
-
-        async function removeWorkoutForSelectedDay() {
-            const me = getMe();
-            const dateStr = appState.selectedDate;
-            if (me.workouts[dateStr]) {
-                delete me.workouts[dateStr];
-                await postToPythonServer('/api/workout', {
-                    date: dateStr,
-                    action: 'delete'
-                });
-                refreshAllUI();
-                showToast("Тренировка удалена из календаря", true);
-            }
-        }
-
-        async function saveWeightForSelectedDay() {
-            const me = getMe();
-            const dateStr = appState.selectedDate;
-            const val = parseFloat(document.getElementById('dayWeightInput').value);
-
-            if (isNaN(val) || val < 35 || val > 250) {
-                showToast("Введите корректный вес в кг (от 35 до 250)", true);
-                return;
-            }
-
-            me.weightLogs[dateStr] = val;
-            await postToPythonServer('/api/weight', {
-                date: dateStr,
-                weight: val
-            });
-            refreshAllUI();
-            showToast(`Вес на ${formatRussianDate(dateStr)} сохранён приватно 🔒`);
-        }
-
-        // =====================================================================
-        // 9. МОТИВАЦИОННОЕ ОКНО ПОСЛЕ ТРЕНИРОВКИ
-        // =====================================================================
-        function openMotivationModal(dateStr, typeKey, duration, comment = "") {
-            const me = getMe();
-            const wInfo = WORKOUT_TYPES[typeKey] || WORKOUT_TYPES.other;
-            const totalWorkouts = getWorkoutCount(me);
-            const quote = MOTIVATION_QUOTES[Math.floor(Math.random() * MOTIVATION_QUOTES.length)];
-
-            document.getElementById('motivationEmoji').textContent = wInfo.emoji;
-            const commentSuffix = comment ? ` • «${comment}»` : '';
-            document.getElementById('motivationWorkoutSummary').textContent = `${formatRussianDate(dateStr)} • ${wInfo.label} • ${duration} мин${commentSuffix}`;
-            document.getElementById('motivationQuoteText').textContent = `«${quote}»`;
-            document.getElementById('motivationProgressText').innerHTML =
-                `Ваш прогресс тренировок: <b class="text-white">${totalWorkouts} из ${MAX_WORKOUT_TARGET}</b> (+${totalWorkouts} б. к цели 128)`;
-
-            document.getElementById('motivationModal').classList.remove('hidden');
-        }
-
-        function closeMotivationModal() {
-            document.getElementById('motivationModal').classList.add('hidden');
-        }
-
-        // =====================================================================
-        // 10. ВКЛАДКА 2: КОНТРОЛЬ 8 НЕДЕЛЬ (ОБЯЗАТЕЛЬНЫЙ МИНИМУМ)
-        // =====================================================================
-        function renderWeeksTab() {
-            const me = getMe();
-            const friend = getFriend();
-            const container = document.getElementById('weeksListContainer');
-            if (!container) return;
-            container.innerHTML = '';
-
-            let completedWeeks = 0;
-
-            CHALLENGE_WEEKS.forEach(w => {
-                const myCount = getWorkoutsInDateRange(me, w.start, w.end);
-                const friendCount = getWorkoutsInDateRange(friend, w.start, w.end);
-                const isDone = myCount >= 1;
-                if (isDone) completedWeeks++;
-
-                const card = document.createElement('div');
-                card.className = `rounded-2xl p-3.5 border flex items-center justify-between transition ${
-                    isDone
-                        ? 'bg-slate-900/80 border-emerald-500/35'
-                        : 'bg-slate-900/50 border-slate-800'
-                }`;
-
-                card.innerHTML = `
-                    <div class="flex items-center gap-3">
-                        <div class="w-9 h-9 rounded-xl flex items-center justify-center font-black text-xs ${
-                            isDone ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-slate-800 text-slate-400'
-                        }">
-                            ${isDone ? '<i class="fa-solid fa-check"></i>' : `W${w.num}`}
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <span class="text-xs font-extrabold text-white">${w.label}</span>
-                                <span class="text-[10px] text-slate-400">${w.rangeText}</span>
-                            </div>
-                            <div class="text-[11px] mt-0.5 ${isDone ? 'text-emerald-300' : 'text-amber-300'}">
-                                ${isDone ? `Минимум выполнен (${myCount} трен.)` : 'Нужна минимум 1 тренировка!'}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="text-right text-[11px]">
-                        <div class="font-bold text-indigo-300">Вы: ${myCount}</div>
-                        <div class="font-bold text-pink-300">Друг: ${friendCount}</div>
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-
-            document.getElementById('weeksCompletedBadge').textContent = `${completedWeeks} / 8 нед.`;
-        }
-
-        // =====================================================================
-        // 11. ВКЛАДКА 3: ТАЙМЕР 29 ДЕКАБРЯ И ФИНАЛЬНОЕ SUMMARY
-        // =====================================================================
-        function updateFinaleCountdownTimer() {
-            const now = Date.now();
-            const diff = FINALE_UNLOCK_TIMESTAMP - now;
-
-            const daysEl = document.getElementById('cdDays');
-            const hoursEl = document.getElementById('cdHours');
-            const minsEl = document.getElementById('cdMinutes');
-            const secsEl = document.getElementById('cdSeconds');
-            const badge = document.getElementById('finaleStatusBadge');
-            const subtitle = document.getElementById('finaleTimerSubtitle');
-            const lockIcon = document.getElementById('finaleLockIcon');
-
-            if (!daysEl) return;
-
-            if (diff <= 0) {
-                daysEl.textContent = "00";
-                hoursEl.textContent = "00";
-                minsEl.textContent = "00";
-                secsEl.textContent = "00";
-                badge.textContent = "🔓 Открыто!";
-                badge.className = "text-[10px] font-bold uppercase px-2.5 py-1 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 shrink-0";
-                subtitle.textContent = "29 декабря наступило! Процентная дельта веса и итоги 128 баллов раскрыты.";
-                lockIcon.className = "fa-solid fa-unlock-keyhole text-emerald-400 text-lg";
-                return;
-            }
-
-            const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-            const m = Math.floor((diff / (1000 * 60)) % 60);
-            const s = Math.floor((diff / 1000) % 60);
-
-            daysEl.textContent = String(d).padStart(2, '0');
-            hoursEl.textContent = String(h).padStart(2, '0');
-            minsEl.textContent = String(m).padStart(2, '0');
-            secsEl.textContent = String(s).padStart(2, '0');
-        }
-
-        function renderSummaryTab() {
-            updateFinaleCountdownTimer();
-            const me = getMe();
-            const friend = getFriend();
-            const unlocked = isFinaleUnlocked();
-
-            const meWorkouts = getWorkoutCount(me);
-            const friendWorkouts = getWorkoutCount(friend);
-
-            const meWeightPts = calculateWeightScore(me);
-            const friendWeightPts = calculateWeightScore(friend);
-
-            const meTotal = unlocked ? Math.round((meWorkouts + meWeightPts) * 10) / 10 : meWorkouts;
-            const friendTotal = unlocked ? Math.round((friendWorkouts + friendWeightPts) * 10) / 10 : friendWorkouts;
-
-            const meDiff128 = Math.round(Math.abs(IDEAL_TOTAL_SCORE - meTotal) * 10) / 10;
-            const friendDiff128 = Math.round(Math.abs(IDEAL_TOTAL_SCORE - friendTotal) * 10) / 10;
-
-            const winnerEl = document.getElementById('summaryWinnerText');
-            if (!unlocked) {
-                winnerEl.innerHTML = `До <b>29 декабря</b> отображаются только баллы за тренировки. В финале прибавятся баллы за вес (макс. 100) и определится самый близкий к <b>128 баллам</b>!`;
-            } else {
-                if (meDiff128 < friendDiff128) {
-                    winnerEl.innerHTML = `🏆 Победитель «НеБешенной НеСушки»: <b class="text-amber-300">${me.name}</b> (отклонение от 128 всего ${meDiff128} б.)!`;
-                } else if (friendDiff128 < meDiff128) {
-                    winnerEl.innerHTML = `🏆 Победитель «НеБешенной НеСушки»: <b class="text-amber-300">${friend.name}</b> (отклонение от 128 всего ${friendDiff128} б.)!`;
-                } else {
-                    winnerEl.innerHTML = `🤝 Боевая ничья! Оба участника одинаково близки к 128 баллам!`;
-                }
-            }
-
-            const compBox = document.getElementById('summaryPlayersComparison');
-            compBox.innerHTML = `
-                <div class="bg-slate-900/85 rounded-2xl p-3.5 border border-indigo-500/40 space-y-2">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xl">${me.avatar}</span>
-                        <div class="text-xs font-extrabold text-white truncate">${me.name} (Вы)</div>
-                    </div>
-                    <div class="text-2xl font-black text-indigo-300">${meTotal} <span class="text-[10px] font-semibold text-slate-400">/ 128</span></div>
-                    <div class="text-[10px] text-slate-400 space-y-0.5">
-                        <div>🏋️‍♀️ Тренировки: <b class="text-slate-200">+${meWorkouts} б.</b></div>
-                        <div>⚖️ Вес (макс 100): <b class="text-emerald-300">${unlocked ? `+${meWeightPts} б.` : '🔒 до 29.12'}</b></div>
-                    </div>
-                </div>
-
-                <div class="bg-slate-900/85 rounded-2xl p-3.5 border border-pink-500/40 space-y-2">
-                    <div class="flex items-center gap-2">
-                        <span class="text-xl">${friend.avatar}</span>
-                        <div class="text-xs font-extrabold text-white truncate">${friend.name} (Друг)</div>
-                    </div>
-                    <div class="text-2xl font-black text-pink-300">${friendTotal} <span class="text-[10px] font-semibold text-slate-400">/ 128</span></div>
-                    <div class="text-[10px] text-slate-400 space-y-0.5">
-                        <div>🏋️‍♀️ Тренировки: <b class="text-slate-200">+${friendWorkouts} б.</b></div>
-                        <div>⚖️ Вес (макс 100): <b class="text-pink-300">${unlocked ? `+${friendWeightPts} б.` : '🔒 до 29.12'}</b></div>
-                    </div>
-                </div>
-            `;
-
-            const workoutsArr = Object.values(me.workouts || {});
-            const totalCount = workoutsArr.length;
-            const totalMinutes = workoutsArr.reduce((acc, w) => acc + (parseInt(w.duration, 10) || 0), 0);
-            const totalHours = Math.round((totalMinutes / 60) * 10) / 10;
-            const avgMins = totalCount > 0 ? Math.round(totalMinutes / totalCount) : 0;
-
-            document.getElementById('summaryTotalDuration').textContent = `${totalMinutes} мин`;
-            document.getElementById('statTotalWorkouts').textContent = `${totalCount} / 28`;
-            document.getElementById('statTotalHours').textContent = `${totalHours} ч`;
-            document.getElementById('statAvgMinutes').textContent = `${avgMins} мин`;
-
-            const breakdownBox = document.getElementById('statTypesBreakdown');
-            breakdownBox.innerHTML = '';
-
-            Object.keys(WORKOUT_TYPES).forEach(typeKey => {
-                const info = WORKOUT_TYPES[typeKey];
-                const filtered = workoutsArr.filter(w => w.type === typeKey);
-                const count = filtered.length;
-                const mins = filtered.reduce((acc, w) => acc + (parseInt(w.duration, 10) || 0), 0);
-                const pct = totalCount > 0 ? Math.round((count / totalCount) * 100) : 0;
-
-                breakdownBox.innerHTML += `
-                    <div class="space-y-1">
-                        <div class="flex justify-between text-[11px]">
-                            <span class="font-semibold text-slate-200">${info.emoji} ${info.label}</span>
-                            <span class="text-slate-400"><b>${count}</b> трен. (${mins} мин • ${pct}%)</span>
-                        </div>
-                        <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                            <div class="${info.color} h-full rounded-full transition-all duration-300" style="width: ${pct}%"></div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            // Рендерим список тренировок с комментариями («Что делал»)
-            const logListEl = document.getElementById('summaryWorkoutLogList');
-            if (logListEl) {
-                const sortedEntries = Object.entries(me.workouts || {}).sort((a, b) => b[0].localeCompare(a[0]));
-                if (sortedEntries.length === 0) {
-                    logListEl.innerHTML = `<p class="text-[11px] text-slate-500">Пока нет записанных тренировок.</p>`;
-                } else {
-                    logListEl.innerHTML = sortedEntries.map(([dStr, w]) => {
-                        const info = WORKOUT_TYPES[w.type] || WORKOUT_TYPES.other;
-                        const commentHtml = w.comment
-                            ? `<div class="text-[11px] text-slate-300 mt-0.5 italic">«${w.comment}»</div>`
-                            : '';
-                        return `
-                            <div class="rounded-xl bg-slate-950/60 border border-slate-800/80 px-3 py-2">
-                                <div class="flex items-center justify-between text-[11px]">
-                                    <span class="font-semibold text-white">${formatRussianDate(dStr)} • ${info.emoji} ${info.label}</span>
-                                    <span class="text-slate-400">${w.duration} мин</span>
-                                </div>
-                                ${commentHtml}
-                            </div>
-                        `;
-                    }).join('');
-                }
-            }
-        }
-
-        function copySummaryText() {
-            const me = getMe();
-            const friend = getFriend();
-            const unlocked = isFinaleUnlocked();
-            const workoutsArr = Object.values(me.workouts || {});
-            const totalCount = workoutsArr.length;
-            const totalMinutes = workoutsArr.reduce((acc, w) => acc + (parseInt(w.duration, 10) || 0), 0);
-            const meWeightPts = calculateWeightScore(me);
-
-            const scoreLine = unlocked
-                ? `🏆 Итоговый счёт: ${totalCount + meWeightPts} / 128 баллов (${totalCount} трен. + ${meWeightPts} вес)`
-                : `🔥 Текущий счёт тренировок: ${totalCount} / 28 баллов (+вес откроется 29 декабря 🔒)`;
-
-            const shareText = [
-                `🔥 Челлендж «НеБешенная НеСушка» (2 ноября — 29 декабря)`,
-                `${me.avatar} Участник: ${me.name} vs ${friend.avatar} ${friend.name}`,
-                scoreLine,
-                `⏱ Всего времени на тренировках: ${totalMinutes} мин (${Math.round((totalMinutes / 60) * 10) / 10} ч)`,
-                `🎯 Движемся к заветным 128 баллам!`
-            ].join('\n');
-
-            navigator.clipboard.writeText(shareText).then(() => {
-                showToast("Summary скопировано в буфер обмена! Отправьте другу в Telegram 🚀");
-            }).catch(() => {
-                showToast("Не удалось скопировать автоматически", true);
-            });
-        }
-
-        // =====================================================================
-        // 12. НАСТРОЙКИ ЛИЧНОГО ПРОФИЛЯ (БЕЗ ДОСТУПА К ДАННЫМ ДРУГА)
-        // =====================================================================
-        function openSettingsModal() {
-            const me = getMe();
-            document.getElementById('settingsNameInput').value = me.name;
-            document.getElementById('settingsStartWeight').value = me.startWeight;
-            document.getElementById('settingsTargetWeight').value = me.targetWeight;
-            document.getElementById('settingsApiUrlInput').value = appState.apiBaseUrl || "";
-            appState.settingsSelectedAvatar = me.avatar;
-
-            const selectSettingsAvatar = (emoji) => {
-                appState.settingsSelectedAvatar = emoji;
-                renderAvatarPicker('settingsAvatarGrid', appState.settingsSelectedAvatar, selectSettingsAvatar);
-            };
-            renderAvatarPicker('settingsAvatarGrid', appState.settingsSelectedAvatar, selectSettingsAvatar);
-
-            document.getElementById('settingsModal').classList.remove('hidden');
-        }
-
-        function closeSettingsModal() {
-            document.getElementById('settingsModal').classList.add('hidden');
-        }
-
-        function simulateFriendWorkoutToday() {
-            const friend = getFriend();
-            const dateStr = appState.selectedDate;
-            const types = ['home', 'gym', 'dance', 'other'];
-            if (friend.workouts[dateStr]) {
-                delete friend.workouts[dateStr];
-                showToast(`Тест: тренировка друга на ${formatRussianDate(dateStr)} убрана`, true);
-            } else {
-                const randomType = types[Math.floor(Math.random() * types.length)];
-                friend.workouts[dateStr] = { type: randomType, duration: 50 };
-                showToast(`Тест: друг отметил тренировку на ${formatRussianDate(dateStr)} (+1 балл)!`);
-            }
-            saveStateToLocal();
-            closeSettingsModal();
-            refreshAllUI();
-        }
-
-        async function saveProfileSettings() {
-            const me = getMe();
-            const newName = document.getElementById('settingsNameInput').value.trim();
-            const startW = parseFloat(document.getElementById('settingsStartWeight').value);
-            const targetW = parseFloat(document.getElementById('settingsTargetWeight').value);
-            const customApiUrl = document.getElementById('settingsApiUrlInput').value.trim();
-
-            if (!newName || isNaN(startW) || isNaN(targetW) || startW <= targetW) {
-                showToast("Проверьте имя и корректность стартового/целевого веса", true);
-                return;
-            }
-
-            me.name = newName;
-            me.avatar = appState.settingsSelectedAvatar;
-            me.startWeight = startW;
-            me.targetWeight = targetW;
-            me.registered = true;
-            appState.apiBaseUrl = customApiUrl;
-
-            await postToPythonServer('/api/register', {
-                name: me.name,
-                avatar: me.avatar,
-                startWeight: me.startWeight,
-                targetWeight: me.targetWeight
-            });
-
-            closeSettingsModal();
-            refreshAllUI();
-            showToast("Личный профиль сохранён!");
-        }
-
-        // =====================================================================
-        // 13. ПЕРЕКЛЮЧЕНИЕ ВКЛАДОК И ЗАПУСК
-        // =====================================================================
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-panel').forEach(p => p.classList.add('hidden'));
-            document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-
-            const tabs = ['calendar', 'weeks', 'summary'];
-            tabs.forEach(t => {
-                const btn = document.getElementById(`nav-${t}`);
-                if (t === tabName) {
-                    btn.className = "nav-btn flex flex-col items-center py-1.5 rounded-2xl text-indigo-400 bg-indigo-500/10 font-bold text-[11px]";
-                } else {
-                    btn.className = "nav-btn flex flex-col items-center py-1.5 rounded-2xl text-slate-400 hover:text-slate-200 font-bold text-[11px]";
-                }
-            });
-
-            refreshAllUI();
-        }
-
-        function refreshAllUI() {
-            renderHeaderDuel();
-            renderCalendarGrid();
-            renderSelectedDayEditor();
-            renderWeeksTab();
-            renderSummaryTab();
-        }
-
-        window.onload = async function () {
-            // 1. Сначала определяем Telegram ID и активный слот (p1 или p2), чтобы читать правильный профиль!
-            if (!verifyWhitelistAccess()) {
-                return;
-            }
-            // 2. Загружаем данные из LocalStorage для этого Telegram ID
-            loadStateFromLocal();
-            // 3. Загружаем данные из облака Telegram (Telegram.WebApp.CloudStorage), которое не стирается при закрытии Mini App
-            await loadFromTelegramCloud();
-            // 4. Синхронизируемся с базой данных SQLite на Python-сервере
-            await syncFromPythonServer();
-            // 5. И только после проверки всех 3 хранилищ проверяем, нужна ли регистрация
-            checkOnboarding();
-            refreshAllUI();
-            setInterval(updateFinaleCountdownTimer, 1000);
-        };
-        // Принудительная синхронизация с базой Render по нажатию на статус в шапке
-async function manualSyncWithRender() {
-  const badge = document.getElementById('sync-status-badge');
-  if (badge) {
-    badge.textContent = '⏳ Обновление...';
-    badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-amber-950/70 border border-amber-700/50 text-amber-300 cursor-pointer';
-  }
-  await pushBackupToServer();
-  const ok = await fetchServerState();
-  if (ok) {
-    renderAll();
-  } else if (badge) {
-    badge.textContent = '⚠️ Сервер спит / VPN (нажмите ещё раз)';
-    badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-rose-950/70 border border-rose-700/50 text-rose-300 cursor-pointer';
-  }
-}
-
-const syncBadgeEl = document.getElementById('sync-status-badge');
-if (syncBadgeEl) {
-  syncBadgeEl.style.cursor = 'pointer';
-  syncBadgeEl.title = 'Нажмите, чтобы синхронизировать с базой Render';
-  syncBadgeEl.addEventListener('click', manualSyncWithRender);
-}
-    </script>
-</body>
-</html>
+        const borderClass = isSelected
+          ? 'border-2 border-emerald-500 bg-zinc-800/90 text-white font-bold'
+          : 'border border-zinc-800/80 bg-zinc-900/70 text-zinc-200 hover:border-zinc-700';
+
+        html += `
+          <button type="button" onclick="selectDate('${dateStr}')"
+            class="relative h-11 rounded-xl flex flex-col items-center justify-center transition ${borderClass}">
+            ${isToday ? '<span class="
