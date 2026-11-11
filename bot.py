@@ -40,7 +40,7 @@ BOT_TOKEN = os.getenv("BOT_TOKEN", "9295051811:AAHbs35ZOiZCdViNhVqNjOnr78zznpMlm
 
 # Ссылка на ваш сервер Render (или GitHub Pages).
 # Когда получите ссылку в Render (например, https://nesushka-128.onrender.com), вставьте её сюда или в переменную среды MINI_APP_URL
-MINI_APP_URL = os.getenv("MINI_APP_URL", "https://ваш-проект.onrender.com")
+MINI_APP_URL = os.getenv("MINI_APP_URL", "https://alexmaslennikovai-source.github.io/nebeshennaya-nesushka")
 
 # Порт встроенного веб-сервера (Render автоматически передаёт переменную PORT)
 PORT = int(os.getenv("PORT", 8080))
