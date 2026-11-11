@@ -129,6 +129,31 @@
     </div>
   </div>
 
+  <!-- МОДАЛЬНОЕ ОКНО РЕЗЕРВНОЙ СИНХРОНИЗАЦИИ (ЕСЛИ ОТКРЫТО НЕ ЧЕРЕЗ НИЖНЮЮ КНОПКУ) -->
+  <div id="sync-fallback-modal" class="fixed inset-0 z-50 bg-zinc-950/90 backdrop-blur-md flex items-center justify-center p-4 hidden">
+    <div class="card p-5 max-w-sm w-full space-y-3.5 border-emerald-800/60">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-bold text-white">📤 Отправка прогресса в бот</h3>
+        <button onclick="closeSyncFallbackModal()" class="text-zinc-400 hover:text-white text-sm px-1">✕</button>
+      </div>
+      <p class="text-xs text-zinc-300 leading-relaxed">
+        Telegram разрешает авто-отправку только при запуске с <b>нижней кнопки клавиатуры</b>. Но вы можете отправить прогресс прямо сейчас одним нажатием:
+      </p>
+      <div class="card-subtle p-2.5">
+        <div class="text-[10px] text-zinc-400 mb-1">Команда синхронизации (уже скопирована):</div>
+        <input id="sync-command-input" type="text" readonly class="w-full bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1.5 text-[11px] font-mono text-emerald-400 focus:outline-none" />
+      </div>
+      <div class="space-y-2 pt-1">
+        <button onclick="copySyncCommandAndClose()" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-xs font-bold text-white transition">
+          📋 Скопировать и закрыть (вставьте в чат бота)
+        </button>
+        <button onclick="closeSyncFallbackModal()" class="w-full py-2 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-medium text-zinc-300 transition">
+          Назад в календарь
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- ШАПКА ПРИЛОЖЕНИЯ -->
   <header class="sticky top-0 z-20 bg-zinc-950/90 backdrop-blur-md border-b border-zinc-800/80 px-4 py-3">
     <div class="max-w-md mx-auto flex items-center justify-between">
@@ -422,8 +447,9 @@
     // КОНСТАНТЫ И НАСТРОЙКИ ЧЕЛЛЕНДЖА
     // =====================================================================
     const ALLOWED_USER_IDS = [5835424498, 7647922685];
-    const STORAGE_KEY = 'nesushka_128_v4_state';
-    const CLOUD_KEY = 'nesushka128_player_v4';
+    // Изолированный ключ версии v5, чтобы старые задвоенные данные из кэша не мешали
+    const STORAGE_KEY_PREFIX = 'nesushka_128_v5_slot_';
+    const CLOUD_KEY = 'nesushka128_player_v5';
 
     const AVATAR_OPTIONS = ['🦎', '🐵', '🦁', '🐯', '🐻', '🐺', '🦊', '🦍', '🦖', '⚡', '🔥', '🥷'];
 
@@ -537,8 +563,12 @@
     }
 
     function verifyWhitelistAccess() {
+      const params = new URLSearchParams(window.location.search);
+      const meParam = params.get('me'); // 'p1' или 'p2' напрямую из персональной кнопки бота
+
       const tg = window.Telegram && window.Telegram.WebApp;
       const tgUser = tg && tg.initDataUnsafe && tg.initDataUnsafe.user;
+
       if (tgUser && tgUser.id) {
         const uid = Number(tgUser.id);
         if (!ALLOWED_USER_IDS.map(Number).includes(uid)) {
@@ -548,11 +578,22 @@
           return false;
         }
         state.currentUser = (uid === Number(ALLOWED_USER_IDS[0])) ? 'p1' : 'p2';
+        try { localStorage.setItem('nesushka_my_slot', state.currentUser); } catch (e) {}
+      } else if (meParam === 'p1' || meParam === 'p2') {
+        // Когда открыто через нижнюю ReplyKeyboard кнопку, Telegram не передаёт initDataUnsafe.user,
+        // поэтому берём слот из персональной ссылки &me=p1 / &me=p2
+        state.currentUser = meParam;
+        try { localStorage.setItem('nesushka_my_slot', state.currentUser); } catch (e) {}
       } else {
-        // Если открыто просто в браузере (для отладки) — показываем переключатель P1/P2
+        // Резервное чтение сохранённого слота или режим тестирования в браузере
+        const savedSlot = localStorage.getItem('nesushka_my_slot');
+        if (savedSlot === 'p1' || savedSlot === 'p2') {
+          state.currentUser = savedSlot;
+        }
         const devBtn = document.getElementById('dev-switch-user-btn');
         if (devBtn) devBtn.classList.remove('hidden');
       }
+
       document.getElementById('whitelist-blocked-overlay').classList.add('hidden');
       return true;
     }
@@ -563,6 +604,7 @@
 
     function toggleDevUser() {
       state.currentUser = state.currentUser === 'p1' ? 'p2' : 'p1';
+      loadMyStateFromLocal();
       showToast(`Режим просмотра: ${state.currentUser.toUpperCase()}`);
       selectDate(state.selectedDate);
     }
@@ -572,26 +614,23 @@
     // =====================================================================
     function saveStateToLocal() {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-          players: state.players
-        }));
+        const mySlot = state.currentUser;
+        // Сохраняем в localStorage ТОЛЬКО свой собственный слот, чтобы никогда не перезаписать друга
+        localStorage.setItem(`${STORAGE_KEY_PREFIX}${mySlot}`, JSON.stringify(state.players[mySlot]));
       } catch (e) {}
       saveStateToCloudStorage();
     }
 
-    function loadStateFromLocal() {
+    function loadMyStateFromLocal() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const mySlot = state.currentUser;
+        const raw = localStorage.getItem(`${STORAGE_KEY_PREFIX}${mySlot}`);
         if (!raw) return;
         const parsed = JSON.parse(raw);
-        if (parsed && parsed.players) {
-          ['p1', 'p2'].forEach(slot => {
-            if (parsed.players[slot]) {
-              state.players[slot] = Object.assign({}, state.players[slot], parsed.players[slot]);
-              state.players[slot].workouts = state.players[slot].workouts || {};
-              state.players[slot].weights = state.players[slot].weights || {};
-            }
-          });
+        if (parsed && typeof parsed === 'object') {
+          state.players[mySlot] = Object.assign({}, state.players[mySlot], parsed);
+          state.players[mySlot].workouts = state.players[mySlot].workouts || {};
+          state.players[mySlot].weights = state.players[mySlot].weights || {};
         }
       } catch (e) {}
     }
@@ -620,7 +659,7 @@
                   state.players[mySlot] = Object.assign({}, state.players[mySlot], cloudPlayer);
                   state.players[mySlot].workouts = state.players[mySlot].workouts || {};
                   state.players[mySlot].weights = state.players[mySlot].weights || {};
-                  localStorage.setItem(STORAGE_KEY, JSON.stringify({ players: state.players }));
+                  localStorage.setItem(`${STORAGE_KEY_PREFIX}${mySlot}`, JSON.stringify(state.players[mySlot]));
                   return resolve(true);
                 }
               } catch (e) {}
@@ -647,29 +686,41 @@
         const shared = JSON.parse(jsonStr);
         if (!shared) return false;
 
-        ['p1', 'p2'].forEach(slot => {
-          const sp = shared[slot];
-          if (!sp || !sp.registered) return;
-          if (slot !== state.currentUser || !state.players[slot].registered) {
-            state.players[slot].registered = true;
-            state.players[slot].name = sp.name || state.players[slot].name;
-            state.players[slot].avatar = sp.avatar || state.players[slot].avatar;
+        const mySlot = state.currentUser;
+        const friendSlot = mySlot === 'p1' ? 'p2' : 'p1';
+
+        // 1. Данные ДРУГА всегда полностью берём с сервера бота (из параметра ?sync=)
+        const spFriend = shared[friendSlot];
+        if (spFriend) {
+          state.players[friendSlot] = {
+            registered: !!spFriend.registered,
+            name: spFriend.name || (friendSlot === 'p1' ? 'Участник 1' : 'Друг'),
+            avatar: spFriend.avatar || (friendSlot === 'p1' ? '🦎' : '🐵'),
+            startWeight: 0,
+            goalWeight: 0,
+            workouts: spFriend.workouts || {},
+            weights: {},
+            serverWeightScore: typeof spFriend.weightScore === 'number' ? spFriend.weightScore : null
+          };
+        }
+
+        // 2. СВОИ данные берём с сервера бота только если локально профиль ещё не был создан
+        const spMe = shared[mySlot];
+        if (spMe && spMe.registered) {
+          if (!state.players[mySlot].registered) {
+            state.players[mySlot].registered = true;
+            state.players[mySlot].name = spMe.name || state.players[mySlot].name;
+            state.players[mySlot].avatar = spMe.avatar || state.players[mySlot].avatar;
+            state.players[mySlot].workouts = spMe.workouts || {};
           }
-          if (sp.workouts) {
-            if (slot !== state.currentUser) {
-              state.players[slot].workouts = sp.workouts;
-            } else {
-              state.players[slot].workouts = Object.assign({}, sp.workouts, state.players[slot].workouts);
-            }
+          if (typeof spMe.weightScore === 'number') {
+            state.players[mySlot].serverWeightScore = spMe.weightScore;
           }
-          if (typeof sp.weightScore === 'number') {
-            state.players[slot].serverWeightScore = sp.weightScore;
-          }
-        });
+        }
 
         const badge = document.getElementById('sync-status-badge');
         if (badge) {
-          badge.textContent = '🟢 Синхр. с ботом';
+          badge.textContent = `🟢 Вы: ${mySlot.toUpperCase()} • Синхр.`;
           badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-700/50 text-emerald-300 cursor-pointer';
         }
         saveStateToLocal();
@@ -680,22 +731,89 @@
       }
     }
 
-    // Отправка ваших данных обратно в локальный бот (при открытии через нижнюю кнопку клавиатуры)
+    function buildCompactSyncPayload() {
+      const myPlayer = state.players[state.currentUser];
+      return {
+        action: 'full_sync',
+        slot: state.currentUser,
+        player: {
+          registered: !!myPlayer.registered,
+          name: myPlayer.name,
+          avatar: myPlayer.avatar,
+          startWeight: myPlayer.startWeight,
+          goalWeight: myPlayer.goalWeight,
+          workouts: myPlayer.workouts || {},
+          weights: myPlayer.weights || {}
+        }
+      };
+    }
+
+    function encodeSyncCommand(payloadObj) {
+      const jsonStr = JSON.stringify(payloadObj);
+      const b64 = window.btoa(unescape(encodeURIComponent(jsonStr)))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/, '');
+      return `/sync ${b64}`;
+    }
+
+    function openSyncFallbackModal(syncCmd) {
+      const inp = document.getElementById('sync-command-input');
+      if (inp) inp.value = syncCmd;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(syncCmd).catch(() => {});
+      }
+      document.getElementById('sync-fallback-modal').classList.remove('hidden');
+    }
+
+    function closeSyncFallbackModal() {
+      document.getElementById('sync-fallback-modal').classList.add('hidden');
+    }
+
+    function copySyncCommandAndClose() {
+      const inp = document.getElementById('sync-command-input');
+      const cmd = inp ? inp.value : '';
+      if (cmd) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(cmd).catch(() => {});
+        } else if (inp) {
+          inp.select();
+          document.execCommand('copy');
+        }
+      }
+      showToast('Скопировано! Вставьте и отправьте команду в чат бота');
+      setTimeout(() => {
+        const tg = window.Telegram && window.Telegram.WebApp;
+        if (tg && tg.close) {
+          tg.close();
+        } else {
+          closeSyncFallbackModal();
+        }
+      }, 600);
+    }
+
+    // Отправка ваших данных обратно в локальный бот (через sendData или резервную команду /sync)
     function sendSyncToBot() {
       const tg = window.Telegram && window.Telegram.WebApp;
-      const myPlayer = state.players[state.currentUser];
-      if (!tg || !tg.sendData) {
-        showToast('Откройте приложение через кнопку внизу чата бота!');
-        return;
-      }
-      try {
-        tg.sendData(JSON.stringify({
-          action: 'full_sync',
-          slot: state.currentUser,
-          player: myPlayer
-        }));
-      } catch (e) {
-        showToast('Для отправки в бот откройте приложение через нижнюю кнопку в чате!');
+      const payloadObj = buildCompactSyncPayload();
+      const jsonPayload = JSON.stringify(payloadObj);
+      const syncCmd = encodeSyncCommand(payloadObj);
+
+      // Если открыто внутри Telegram и есть метод sendData
+      if (tg && typeof tg.sendData === 'function') {
+        try {
+          tg.sendData(jsonPayload);
+        } catch (e) {
+          openSyncFallbackModal(syncCmd);
+          return;
+        }
+        // Если приложение было открыто НЕ с нижней кнопки клавиатуры,
+        // Telegram молча проигнорирует sendData() и не закроет окно через 550 мс — тогда показываем окно с командой /sync
+        setTimeout(() => {
+          openSyncFallbackModal(syncCmd);
+        }, 550);
+      } else {
+        openSyncFallbackModal(syncCmd);
       }
     }
 
@@ -1316,7 +1434,7 @@
       state.currentMonth = todayInfo.month;
       state.selectedDate = todayInfo.dateStr;
 
-      loadStateFromLocal();
+      loadMyStateFromLocal();
       await loadStateFromCloudStorage();
       loadSharedStateFromBotUrl();
 
