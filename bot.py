@@ -36,7 +36,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 # =====================================================================
 # НАСТРОЙКИ БОТА, СЕРВЕРА И ВАЙТЛИСТ УЧАСТНИКОВ
 # =====================================================================
-BOT_TOKEN = os.getenv("BOT_TOKEN", "9295051811:AAHbs35ZOiZCdViNhVqNjOnr78zznpMlm7A")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "9295051811:AAGjmaRxiBM_jLFXi99Fb1adpK-_nhM8T5Y")
 
 # Ссылка на ваш сервер Render (или GitHub Pages).
 # Когда получите ссылку в Render (например, https://nesushka-128.onrender.com), вставьте её сюда или в переменную среды MINI_APP_URL
