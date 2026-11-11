@@ -1860,6 +1860,29 @@
             refreshAllUI();
             setInterval(updateFinaleCountdownTimer, 1000);
         };
+        // Принудительная синхронизация с базой Render по нажатию на статус в шапке
+async function manualSyncWithRender() {
+  const badge = document.getElementById('sync-status-badge');
+  if (badge) {
+    badge.textContent = '⏳ Обновление...';
+    badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-amber-950/70 border border-amber-700/50 text-amber-300 cursor-pointer';
+  }
+  await pushBackupToServer();
+  const ok = await fetchServerState();
+  if (ok) {
+    renderAll();
+  } else if (badge) {
+    badge.textContent = '⚠️ Сервер спит / VPN (нажмите ещё раз)';
+    badge.className = 'text-[10px] px-2 py-0.5 rounded-full bg-rose-950/70 border border-rose-700/50 text-rose-300 cursor-pointer';
+  }
+}
+
+const syncBadgeEl = document.getElementById('sync-status-badge');
+if (syncBadgeEl) {
+  syncBadgeEl.style.cursor = 'pointer';
+  syncBadgeEl.title = 'Нажмите, чтобы синхронизировать с базой Render';
+  syncBadgeEl.addEventListener('click', manualSyncWithRender);
+}
     </script>
 </body>
 </html>
